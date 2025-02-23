@@ -1,0 +1,9 @@
+/vendor
+/app
+/bootstrap
+/config
+/database
+/.idea
+index.php
+composer.lock
+
