@@ -662,8 +662,7 @@ class Builder
      */
     public function get()
     {
-        if (
-            $this->cache == true && File::hasAndIsExpired(DI::get('db.cache.path')
+        if ($this->cache == true && File::hasAndIsExpired(DI::get('db.cache.path')
                 . md5($this->cacheParams['id'])
                 . $this->cachePrefix, $this->cacheParams['ttl'])
         ) {
