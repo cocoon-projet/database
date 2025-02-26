@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Cocoon\Database\Query\Builder;
 
 
-class BuilderTest extends TestCase
+class BuilderCrudTest extends TestCase
 {
     protected $pdo;
 
@@ -29,21 +29,6 @@ class BuilderTest extends TestCase
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username VARCHAR(255) NOT NULL,
             email VARCHAR(255) NOT NULL
-        )');
-
-        $this->pdo->exec('CREATE TABLE IF NOT EXISTS articles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title VARCHAR(255) NOT NULL,
-            content TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )');
-
-        $this->pdo->exec('CREATE TABLE IF NOT EXISTS comments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            content TEXT NOT NULL,
-            article_id INTEGER,
-            FOREIGN KEY (user_id) REFERENCES users(id),
-            FOREIGN KEY (article_id) REFERENCES articles(id)
         )');
     }
 
