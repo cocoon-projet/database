@@ -26,9 +26,9 @@ class Mysql extends PDO
                 $config['db_user'],
                 $config['db password']
             );
-            $this->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, 'SET NAMES utf8');
+            $this->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, 'SET NAMES utf8mb4');
             $this->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-            if ($config['mode'] == 'development') {
+            if ($config['mode'] == 'development' or $config['mode'] == 'testing') {
                 $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } else {
                 $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);

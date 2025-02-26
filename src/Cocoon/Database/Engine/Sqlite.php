@@ -25,7 +25,7 @@ class Sqlite extends PDO
                 'charset=UTF-8'
             );
             $this->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-            if ($config['mode'] == 'development') {
+            if ($config['mode'] == 'development' or $config['mode'] == 'testing') {
                 $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } else {
                 $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);

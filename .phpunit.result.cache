@@ -1,1 +1,1 @@
-{"version":1,"defects":[],"times":{"Tests\\ExempleTest::testTrueAssertsToTrue":0,"DatabaseTest::testConnection":0.009}}
+{"version":1,"defects":{"DatabaseTest::testQueryBuilder":4,"DatabaseTest::testConnection":4},"times":{"Tests\\ExempleTest::testTrueAssertsToTrue":0,"DatabaseTest::testConnection":0.491,"DatabaseTest::testQueryBuilder":0.082}}
