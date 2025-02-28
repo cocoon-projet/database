@@ -34,25 +34,29 @@ class BuilderCrudTest extends TestCase
 
     public function testInsert()
     {
-        $builder = Builder::init();
+        $builder = new Builder();
         $builder->from('users')->insert(['username' => 'john_doe', 'email' => 'john.doe@example.com']);
-        $result = Builder::init()->from('users')->get();
+        $result = (new Builder())->from('users')->get();
         $this->assertCount(1, $result);
-        $this->assertEquals('john_doe', $result[0]['username']);
-    }
-    public function testUpdate()
-    {
-        $builder = Builder::init();
-        $builder->from('users')->update(['username' => 'jane_smith', 'email' => 'jane_smith@example.com'])->where('id', 1);
-        $result = Builder::init()->from('users')->where('id', 1)->get();
-        $this->assertEquals('jane_smith', $result[0]['username']);
+        $this->assertEquals('john_doe', $result[0]->username);
     }
 
     public function testDelete()
     {
-        $builder = Builder::init();
-        $builder->from('users')->delete()->where('id', 1);
-        $result = Builder::init()->from('users')->where('id', 1)->get();
+        $builder = new Builder();
+        $builder->from('users')->where('id', 1)->delete();
+        $result = (new Builder())->from('users')->where('id', 1)->get();
         $this->assertEmpty($result);
+    }
+
+    public function testUpdate()
+    { 
+        $builder = new Builder();
+        $builder->from('users')->insert(['username' => 'john_doe', 'email' => 'john.doe@example.com']);
+        $builder = new Builder();
+        $builder->from('users')->where('id', 1)->update(['username' => 'jane_smith', 'email' => 'jane_smith@example.com']);
+        $result = (new Builder())->from('users')->where('id', 1)->get();
+
+        $this->assertEquals('jane_smith', $result[0]->username);
     }
 }

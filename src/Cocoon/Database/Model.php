@@ -7,6 +7,7 @@ use ArrayAccess;
 use Cocoon\Database\Query\Builder;
 use Cocoon\Utilities\Str;
 use Cocoon\Exception\ModelException;
+use Cocoon\Utilities\Strings;
 use Exception;
 
 /**
@@ -129,7 +130,7 @@ abstract class Model implements ArrayAccess
     {
         if (static::$table == null) {
             $tableName = preg_replace('/([a-zA-Z]+[\\\\])/i', '', get_called_class());
-            static::$table = Str::tableize($tableName);
+            static::$table = Strings::tableize($tableName);
         }
         return static::$table;
     }

@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Cocoon\Database\Query;
 
-use Cocoon\Database\DB;
 use Cocoon\Dependency\DI;
 use Cocoon\FileSystem\File;
 use Cocoon\Pager\Paginator;
@@ -652,7 +651,7 @@ class Builder
     public function lists($field, $id = 'id')
     {
         $result = $this->get();
-        return (new Collection($result))->lists($field, $id);
+        return (new Collection($result))->lists($field, $id)->toArray();
     }
 
     /**
