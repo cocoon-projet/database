@@ -235,11 +235,11 @@ class Builder
      *
      * @return int
      */
-    public function count(): int
+    public function count()
     {
-        $this->select('count(*) as nombres');
+        $this->select('count(*) as total ');
         $result = $this->get();
-        $total = $result[0]->nombres;
+        $total = $result[0]->total;
         return $total;
     }
 

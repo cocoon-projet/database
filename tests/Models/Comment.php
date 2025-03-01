@@ -1,6 +1,6 @@
 <?php
-
+namespace Tests\Models;
 class Comment extends \Cocoon\Database\Model
 {
-    protected $table = 'comments';
+    protected static $table = 'comments';
 }

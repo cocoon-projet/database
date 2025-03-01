@@ -235,7 +235,7 @@ abstract class Model implements ArrayAccess
                     ->select($fields)
                     ->from(static::getTableName())
                     ->orderBy($orderByField, $order)
-                    ->paginate($perpage, $options);
+                    ->paginate($perpage, $options['styling']);
             return $result;
         }
         $data = Builder::init(get_called_class())->select($fields)

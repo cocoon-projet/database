@@ -1,6 +1,6 @@
 <?php
-
+namespace Tests\Models;
 class Article extends \Cocoon\Database\Model
 {
-      protected $table = 'articles';
+      protected static $table = 'articles';
 }
