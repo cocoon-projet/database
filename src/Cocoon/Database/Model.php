@@ -5,7 +5,6 @@ namespace Cocoon\Database;
 
 use ArrayAccess;
 use Cocoon\Database\Query\Builder;
-use Cocoon\Utilities\Str;
 use Cocoon\Exception\ModelException;
 use Cocoon\Utilities\Strings;
 use Exception;
