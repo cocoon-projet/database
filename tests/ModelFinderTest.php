@@ -172,4 +172,16 @@ class ModelFinderTest extends TestCase
         $users = User::select('username')->where('username', 'john_doe')->get();    
         $this->assertCount(1, $users);
     }
+
+    public function testMagicMethod()
+    {
+        $user = User::findByUsername('john_doe');
+        $this->assertEquals('john_doe', $user->username);
+    }
+
+    public function testHasMany()
+    {
+        $user = User::with(['articles'])->first();
+        $this->assertCount(9, $user->articles);
+    }
 }
