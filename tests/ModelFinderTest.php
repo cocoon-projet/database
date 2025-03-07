@@ -209,4 +209,10 @@ class ModelFinderTest extends TestCase
         $article = Article::with(['user'])->first();
         $this->assertEquals('john_doe', $article->user->username);
     }
+
+    public function testHasOne()
+    {
+        $user = User::with(['phone'])->first();
+        $this->assertEquals('1234567890', $user->phone->phone_number);
+    }
 }
