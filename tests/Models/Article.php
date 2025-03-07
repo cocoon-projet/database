@@ -7,7 +7,8 @@ class Article extends \Cocoon\Database\Model
       public function relations()
       {
           return [
-            'user' => $this->belongsTo(User::class)
+            'user' => $this->belongsTo(User::class),
+            'tags' => $this->belongsToMany(Tag::class, ArticleTag::class)
           ];
       }
 }
