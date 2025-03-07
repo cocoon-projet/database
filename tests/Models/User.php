@@ -8,6 +8,7 @@ class User extends \Cocoon\Database\Model
     {
         return [
             'articles' => $this->hasMany(Article::class),
+            'phone' => $this->hasOne(Phone::class)
         ];
     }
 }

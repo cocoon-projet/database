@@ -32,6 +32,13 @@ class ModelFinderTest extends TestCase
             email VARCHAR(255) NOT NULL
         )');
 
+        $this->pdo->exec('CREATE TABLE IF NOT EXISTS phones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            phone_number VARCHAR(255) NOT NULL,
+            user_id INTEGER,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )');
+
         $this->pdo->exec('CREATE TABLE IF NOT EXISTS articles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title VARCHAR(255) NOT NULL,
@@ -56,6 +63,13 @@ class ModelFinderTest extends TestCase
             ['username' => 'jane_smith', 'email' => 'jane.smith@example.com'],
             ['username' => 'peter_jones', 'email' => 'peter.jones@example.com'],
             // (3 auteurs)
+        ];
+
+        $phones = [
+            ['phone_number' => '1234567890', 'user_id' => 1],
+            ['phone_number' => '0987654321', 'user_id' => 2],
+            ['phone_number' => '1230984567', 'user_id' => 3],
+            // (3 phones)
         ];
 
         $articles = [
@@ -121,6 +135,11 @@ class ModelFinderTest extends TestCase
         $stmt = $this->pdo->prepare('INSERT INTO users (username, email) VALUES (:username, :email)');
         foreach ($users as $user) {
             $stmt->execute($user);
+        }
+
+        $stmt = $this->pdo->prepare('INSERT INTO phones (phone_number, user_id) VALUES (:phone_number, :user_id)');
+        foreach ($phones as $phone) {
+            $stmt->execute($phone);
         }
 
         $stmt = $this->pdo->prepare('INSERT INTO articles (title, content, user_id) VALUES (:title, :content, :user_id)');
