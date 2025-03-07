@@ -184,4 +184,10 @@ class ModelFinderTest extends TestCase
         $user = User::with(['articles'])->first();
         $this->assertCount(9, $user->articles);
     }
+
+    public function testBelongsTo()
+    {
+        $article = Article::with(['user'])->first();
+        $this->assertEquals('john_doe', $article->user->username);
+    }
 }

@@ -7,7 +7,7 @@ class User extends \Cocoon\Database\Model
     public function  relations()
     {
         return [
-            'articles' => $this->hasMany(Article::class)
+            'articles' => $this->hasMany(Article::class),
         ];
     }
 }
