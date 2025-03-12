@@ -124,13 +124,14 @@ class Builder
     public function update($data): void
     {
         $this->type = self::UPDATING;
+        //dumpe($data);
         foreach ($data as $k => $v) {
-            if (strpos($v, " + ") or strpos($v, " - ")) {
-                $this->set[] = $k . ' = ' . $v;
-            } else {
+           // if (strpos($v, " + ") or strpos($v, " - ")) {
+           //     $this->set[] = $k . ' = ' . $v;
+           // } else {
                 $this->set[] = $k . ' = ?';
                 $this->bindParams[] = $v;
-            }
+           // }
         }
         $stmt = $this->db->prepare($this->getSql());
         if (count($this->getBindParams()) > 0) {

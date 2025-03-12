@@ -47,6 +47,16 @@ class ModelCrudTest extends TestCase
         $this->assertEquals('john.doe@example.com', $result->email);
     }
 
+    public function testSaveUpdate()
+    {
+        $user = new User(1);
+        $user->username = 'john_doe5';
+        $user->email = 'john.doe5@example.com';
+        $user->save();
+        $result = DB::query('select * from users where id = ?' , [$user->getId()]);
+        $this->assertIsArray($result);
+    }
+
     public function testDelete()
     {
         $user = new User();
@@ -100,4 +110,16 @@ class ModelCrudTest extends TestCase
         $result = DB::query('select * from users where username = ?' , ['john_doe']);
         $this->assertNotEmpty($result);
     }
+
+    public function testCreate()
+    {
+        $user = User::create([
+            'username' => 'john_doe10',
+            'email' => 'john.doe10@example.com'
+        ]);
+        $result = DB::query('select * from users where username = ?' , ['john_doe10']);
+        $this->assertNotEmpty($result);
+    }
+
+   
 }
