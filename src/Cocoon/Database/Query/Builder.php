@@ -354,7 +354,7 @@ class Builder
             $ret[] = '?';
             $i++;
         }
-        $this->where[] = ' AND NOT' . $field . ' IN (' . implode(', ', $ret) . ')';
+        $this->where[] = ' AND NOT ' . $field . ' IN (' . implode(', ', $ret) . ')';
         $this->resolveBindParams($bindParam);
 
         return $this;
