@@ -124,14 +124,13 @@ class Builder
     public function update($data): void
     {
         $this->type = self::UPDATING;
-        //dumpe($data);
         foreach ($data as $k => $v) {
-           // if (strpos($v, " + ") or strpos($v, " - ")) {
-           //     $this->set[] = $k . ' = ' . $v;
-           // } else {
+            if (is_string($v) && (strpos($v, " + ") !== false || strpos($v, " - ") !== false)) {
+                $this->set[] = $k . ' = ' . $v;
+            } else {
                 $this->set[] = $k . ' = ?';
                 $this->bindParams[] = $v;
-           // }
+            }
         }
         $stmt = $this->db->prepare($this->getSql());
         if (count($this->getBindParams()) > 0) {
@@ -150,7 +149,7 @@ class Builder
      */
     public function increment($field, $more = 1, $columns = null): void
     {
-        $data[$field] = $field + $more;
+        $data[$field] = $field . ' + ' . $more;
         if ($columns != null) {
             $keys = array_keys($columns);
             $this->where($keys[0], $columns[$keys[0]])->update($data);
@@ -168,7 +167,7 @@ class Builder
      */
     public function decrement($field, $less = 1, $columns = null): void
     {
-        $data[$field] = $field - $less;
+        $data[$field] = $field . ' -  ' . $less;
         if ($columns != null) {
             $keys = array_keys($columns);
             $this->where($keys[0], $columns[$keys[0]])->update($data);

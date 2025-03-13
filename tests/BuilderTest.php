@@ -27,14 +27,15 @@ class BuilderTest extends TestCase
         $this->pdo->exec('CREATE TABLE users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT,
-            email TEXT
+            email TEXT,
+            points INTEGER DEFAULT 0
         )');
 
         // Insertion de données de test
-        $this->pdo->exec("INSERT INTO users (username, email) VALUES 
-            ('user1', 'user1@test.com'),
-            ('user2', 'user2@test.com'),
-            ('user3', 'user3@test.com')");
+        $this->pdo->exec("INSERT INTO users (username, email, points) VALUES 
+            ('user1', 'user1@test.com', 10),
+            ('user2', 'user2@test.com', 20),
+            ('user3', 'user3@test.com', 30)");
     }
 
     public function testSelect()
@@ -278,5 +279,34 @@ class BuilderTest extends TestCase
         $this->assertEquals('user1', $usernames[1]);
         $this->assertEquals('user2', $usernames[2]);
         $this->assertEquals('user3', $usernames[3]);
+    }
+
+    public function testIncrement()
+    {
+        // Incrémente les points de user1 de 5
+        DB::table('users')
+            ->where('username', 'user1')
+            ->increment('points', 5);
+
+        $user = DB::table('users')
+            ->where('username', 'user1')
+            ->first();
+
+        $this->assertNotNull($user);
+        $this->assertEquals(15, $user->points); // 10 + 5 = 15
+    }
+
+    public function testDecrement()
+    {
+        // Décrémente les points de user2 de 8
+        DB::table('users')
+            ->where('username', 'user2')
+            ->decrement('points', 8);
+
+        $user = DB::table('users')
+            ->where('username', 'user2')
+            ->first();
+
+        $this->assertEquals(12, $user->points); // 20 - 8 = 12
     }
 }
