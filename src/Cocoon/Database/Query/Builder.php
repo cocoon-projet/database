@@ -6,6 +6,7 @@ namespace Cocoon\Database\Query;
 use Cocoon\Dependency\DI;
 use Cocoon\FileSystem\File;
 use Cocoon\Pager\Paginator;
+use Cocoon\Database\Query\Cast;
 use Cocoon\Collection\Collection;
 use Cocoon\Pager\PaginatorConfig;
 
@@ -62,6 +63,7 @@ class Builder
     public function __construct()
     {
         $this->db = DI::get('db.connection');
+        Cast::setDatabaseType();
     }
     public function cache($id, $ttl = 3600): static
     {
@@ -482,25 +484,6 @@ class Builder
     {
         return $this->groupBy;
     }
-    /*
-    // TODO voir orHaving
-    public function having($cond, $bindParam = null)
-    {
-        $this->having = $cond;
-        if ($bindParam != null) {
-            $this->bindParamsWhere[] = $bindParam;
-        }
-        return $this;
-    }
-    // TODO a voir !
-    public function orHaving($cond, $bindParam = null): static
-    {
-        $this->having = $cond;
-        if ($bindParam != null) {
-            $this->bindParamsWhere[] = $bindParam;
-        }
-        return $this;
-    }*/
 
     /**
      * Ajoute une clause HAVING

@@ -16,6 +16,7 @@ class Orm
     {
         $db = DatabaseConnection::make($engine, $db_config);
         DI::addServices([
+            'db.driver' => $engine,
             'db.connection' => $db,
             'db.cache.path' => $db_config['db_cache_path']
         ]);

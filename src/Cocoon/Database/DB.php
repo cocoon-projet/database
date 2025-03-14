@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Cocoon\Database;
 
-use Cocoon\Database\Raw;
+use Cocoon\Database\Query\Raw;
 use Cocoon\Dependency\DI;
 use Cocoon\Database\Query\Builder;
 
@@ -55,7 +55,7 @@ class DB
  * Crée une expression SQL brute
  *
  * @param string $value L'expression SQL
- * @return \Cocoon\Database\Raw
+ * @return \Cocoon\Database\Query\Raw
  */
     public static function raw($value)
     {
