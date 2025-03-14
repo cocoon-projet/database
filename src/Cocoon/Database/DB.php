@@ -3,8 +3,9 @@ declare(strict_types=1);
 
 namespace Cocoon\Database;
 
-use Cocoon\Database\Query\Builder;
+use Cocoon\Database\Raw;
 use Cocoon\Dependency\DI;
+use Cocoon\Database\Query\Builder;
 
 /**
  * Class DB
@@ -47,4 +48,19 @@ class DB
     {
         return Builder::init()->from($table);
     }
+
+    // ...existing code...
+
+/**
+ * Crée une expression SQL brute
+ *
+ * @param string $value L'expression SQL
+ * @return \Cocoon\Database\Raw
+ */
+    public static function raw($value)
+    {
+        return new Raw($value);
+    }
+
+// ...existing code...
 }

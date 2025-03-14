@@ -45,6 +45,7 @@ class Builder
     protected $join = [];
     protected $on = [];
     protected $perpage = 10;
+    protected $columns = [];
     protected $pagerLinksMode = 'all';
     protected $type = self::SELECT;
     protected $ids = [];
@@ -221,12 +222,24 @@ class Builder
     /**
      * Selection des champs de la table
      *
-     * @param string $fields
+     * @param string|array $fields
      * @return $this
      */
     public function select($fields): static
     {
-        $this->setFields = $fields;
+        if (!is_array($fields)) {
+            $fields = [$fields];
+        }
+        foreach ($fields as $column) {
+            if ($column instanceof Raw) {
+                $this->columns[] = $column->getValue();
+            } else {
+                $this->columns[] = $column;
+            }
+        }
+        //dump($this->columns);
+        //dumpe(implode(', ', $this->columns));
+        $this->setFields = implode(', ', $this->columns);
         return $this;
     }
 
@@ -469,6 +482,7 @@ class Builder
     {
         return $this->groupBy;
     }
+    /*
     // TODO voir orHaving
     public function having($cond, $bindParam = null)
     {
@@ -485,6 +499,65 @@ class Builder
         if ($bindParam != null) {
             $this->bindParamsWhere[] = $bindParam;
         }
+        return $this;
+    }*/
+
+    /**
+     * Ajoute une clause HAVING
+     *
+     * @param string|array $column Colonne ou condition complète
+     * @param string|null $operator Opérateur de comparaison
+     * @param mixed|null $value Valeur à comparer
+     * @return $this
+     */
+    public function having($column, $operator = null, $value = null): static
+    {
+        // Si 2 paramètres: $column est le nom de colonne, $operator est la valeur
+        if ($value === null && $operator !== null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        // Si 1 paramètre: $column est la condition complète
+        if ($operator === null) {
+            $this->having = $column;
+        } else {
+            // Si 2 ou 3 paramètres: construire la condition
+            $this->having = $column . ' ' . $operator . ' ?';
+            $this->bindParamsWhere[] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Ajoute une clause OR HAVING
+     *
+     * @param string|array $column Colonne ou condition complète
+     * @param string|null $operator Opérateur de comparaison
+     * @param mixed|null $value Valeur à comparer
+     * @return $this
+     */
+    public function orHaving($column, $operator = null, $value = null): static
+    {
+        // Si 2 paramètres: $column est le nom de colonne, $operator est la valeur
+        if ($value === null && $operator !== null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        // Si 1 paramètre: $column est la condition complète
+        if ($operator === null) {
+            // Concaténer avec la condition HAVING existante si elle existe
+            $this->having = $this->having ? $this->having . ' OR ' . $column : $column;
+        } else {
+            // Si 2 ou 3 paramètres: construire la condition
+            $condition = $column . ' ' . $operator . ' ?';
+            // Concaténer avec la condition HAVING existante si elle existe
+            $this->having = $this->having ? $this->having . ' OR ' . $condition : $condition;
+            $this->bindParamsWhere[] = $value;
+        }
+
         return $this;
     }
 
@@ -532,9 +605,9 @@ class Builder
         return $this;
     }
 
-    protected function getOrder()
+    protected function getOrder(): string
     {
-        return $this->order;
+        return $this->order ?? '';
     }
 
     public function leftJoin($table, $on = null): static

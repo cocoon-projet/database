@@ -227,37 +227,7 @@ class BuilderTest extends TestCase
         $this->assertEquals(2, $users[0]->total);
         $this->assertEquals('user2', $users[1]->username);
         $this->assertEquals(2, $users[1]->total);
-    }/*
-    public function testOrHaving()
-    {
-        // Ajout de données avec des doublons 
-        $this->pdo->exec("INSERT INTO users (username, email) VALUES 
-            ('user1', 'user1.bis@test.com'),
-            ('user2', 'user2.bis@test.com'),
-            ('user2', 'user2.ter@test.com')");
-
-        $users = DB::table('users')
-            ->select('username, COUNT(*) as total')
-            ->groupBy('username')
-            ->having('COUNT(*) = 1')
-            ->orHaving('COUNT(*) = 3')
-            ->orderBy('username', 'asc')
-            ->get();
-
-        $this->assertCount(2, $users); // user3 has count=1, user2 has count=3
-
-        $userTotals = [];
-        foreach ($users as $user) {
-            $userTotals[$user->username] = $user->total;
-        }
-
-        // Verify individual counts
-        $this->assertEquals(1, $userTotals['user3']); // user3 has 1 record
-        $this->assertEquals(3, $userTotals['user2']); // user2 has 3 records
-
-        // Make sure user1 is not included (has count=2)
-        $this->assertArrayNotHasKey('user1', $userTotals);
-    }*/
+    }
     public function testlists()
     {
         $usernames = DB::table('users')
@@ -308,5 +278,53 @@ class BuilderTest extends TestCase
             ->first();
 
         $this->assertEquals(12, $user->points); // 20 - 8 = 12
+    }
+    
+    public function testOrHaving()
+    {
+        // Nettoyons d'abord la table
+        $this->pdo->exec("DELETE FROM users");
+        
+        // Insérons des données de test spécifiques avec des points par défaut
+        $this->pdo->exec("INSERT INTO users (username, email, points) VALUES 
+            ('user1', 'user1@test.com', 10),
+            ('user1', 'user1.bis@test.com', 10),
+            ('user2', 'user2@test.com', 20),
+            ('user2', 'user2.bis@test.com', 20),
+            ('user2', 'user2.ter@test.com', 20),
+            ('user3', 'user3@test.com', 30)");
+
+        // Ajoutons d'abord un debug pour voir les résultats intermédiaires
+        $debug = DB::table('users')
+            ->select('username, COUNT(*) as total')
+            ->groupBy('username')
+            ->get();
+
+        // Vérifions les totaux avant d'appliquer les conditions HAVING
+        foreach ($debug as $d) {
+            echo sprintf("Debug - Username: %s, Total: %d\n", $d->username, $d->total);
+        }
+
+        $users = DB::table('users')
+            ->select(['username', DB::raw('CAST(COUNT(*) AS INTEGER) as total')])
+            ->groupBy('username')
+            ->having('COUNT(*) = 1')
+            ->orHaving('COUNT(*) = 3')
+            ->orderBy('username', 'asc')
+            ->get();
+
+        // Stockons les totaux dans un tableau pour faciliter la vérification
+        $userTotals = [];
+        foreach ($users as $user) {
+            $userTotals[$user->username] = $user->total;
+        }
+
+        // Vérifions que nous avons exactement 2 résultats
+        $this->assertCount(2, $users, "Nous devrions avoir exactement 2 résultats (user2 avec 3 enregistrements et user3 avec 1 enregistrement)");
+        
+        // Vérifions les totaux spécifiques
+        $this->assertEquals(1, $userTotals['user3'], "user3 devrait avoir 1 enregistrement");
+        $this->assertEquals(3, $userTotals['user2'], "user2 devrait avoir 3 enregistrements");
+        $this->assertArrayNotHasKey('user1', $userTotals, "user1 ne devrait pas être dans les résultats");
     }
 }
