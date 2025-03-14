@@ -2,6 +2,7 @@
 use Cocoon\Database\DB;
 use Cocoon\Database\Orm;
 use Cocoon\Dependency\DI;
+use Cocoon\Database\Query\Cast;
 use PHPUnit\Framework\TestCase;
 
 class BuilderTest extends TestCase
@@ -306,7 +307,10 @@ class BuilderTest extends TestCase
         }
 
         $users = DB::table('users')
-            ->select(['username', DB::raw('CAST(COUNT(*) AS INTEGER) as total')])
+            ->select([
+                'username', 
+                DB::raw(Cast::asInteger('COUNT(*)') . ' as total')
+            ])
             ->groupBy('username')
             ->having('COUNT(*) = 1')
             ->orHaving('COUNT(*) = 3')
