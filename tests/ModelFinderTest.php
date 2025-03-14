@@ -449,4 +449,10 @@ class ModelFinderTest extends TestCase
         $article = Article::with(['tags'])->first();
         $this->assertCount(100, $article->tags);
     }
+
+    public function testScope()
+    {
+        $users = Article::user_id_one()->get();
+        $this->assertCount(9, $users);
+    }
 }
