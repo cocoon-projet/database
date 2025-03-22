@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Cocoon\Database\Relation;
 
+use Cocoon\Dependency\DI;
 use Cocoon\Pager\Paginator;
 use Cocoon\Utilities\Strings;
 use Cocoon\Collection\Collection;
@@ -67,7 +68,12 @@ class HasMany
     public function paginate($perpage = 1, $mode = null)
     {
         $this->paginationRelated = true;
-        $this->paginationRelatedOptions['styling'] = $mode;
+        if($mode != null){
+            $this->paginationRelatedOptions['styling'] = $mode;
+        }else{
+            $this->paginationRelatedOptions['styling'] = 'all';
+        }
+        
         $this->paginationRelatedOptions['perpage'] = $perpage;
         return $this;
     }
@@ -105,7 +111,8 @@ class HasMany
                 : new Collection([]);
             $config = new PaginatorConfig($items, $count);
             $config->setPerPage($this->paginationRelatedOptions['perpage']);
-            $config->setstyling($this->paginationRelatedOptions['styling']);
+            $config->setStyling($this->paginationRelatedOptions['styling']);
+            $config->setCssFramework(DI::get('pagination.renderer'));
             return new Paginator($config);
         }
         return new Collection($result);

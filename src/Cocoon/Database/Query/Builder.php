@@ -626,7 +626,8 @@ class Builder
         : new Collection([]);
         $config = new PaginatorConfig($items, $count);
         $config->setPerPage($this->perpage);
-        $config->setstyling($this->pagerLinksMode);
+        $config->setStyling($this->pagerLinksMode);
+        $config->setCssFramework(DI::get('pagination.renderer')); 
         return new Paginator($config);
     }
 
