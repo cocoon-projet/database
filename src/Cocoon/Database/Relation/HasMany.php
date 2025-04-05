@@ -68,9 +68,9 @@ class HasMany
     public function paginate($perpage = 1, $mode = null)
     {
         $this->paginationRelated = true;
-        if($mode != null){
+        if ($mode != null) {
             $this->paginationRelatedOptions['styling'] = $mode;
-        }else{
+        } else {
             $this->paginationRelatedOptions['styling'] = 'all';
         }
         

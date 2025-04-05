@@ -627,7 +627,7 @@ class Builder
         $config = new PaginatorConfig($items, $count);
         $config->setPerPage($this->perpage);
         $config->setStyling($this->pagerLinksMode);
-        $config->setCssFramework(DI::get('pagination.renderer')); 
+        $config->setCssFramework(DI::get('pagination.renderer'));
         return new Paginator($config);
     }
 
