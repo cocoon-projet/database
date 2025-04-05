@@ -16,6 +16,7 @@ class DatabaseTest extends TestCase
                 'sqlite' => [
                     'path' => ':memory:',
                     'mode' => 'testing',
+                    'pagination_renderer' => 'bootstrap5',
                     'db_cache_path' =>''
                 ]
             ]
