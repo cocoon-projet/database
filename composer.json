@@ -14,7 +14,7 @@
     "league/flysystem": "^3.29",
     "cocoon-projet/di": "^1.2",
     "cocoon-projet/pagination": "^0.0.4",
-    "cocoon-projet/collection": "^0.0.3"
+    "cocoon-projet/collection": "0.0.4"
   },
   "autoload-dev": {
     "psr-4": {
