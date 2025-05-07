@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Cocoon\Database\Query;
 
+use Cocoon\Database\Orm;
 use Cocoon\Dependency\DI;
 
 class Cast
@@ -20,7 +21,7 @@ class Cast
      */
     public static function setDatabaseType(): void
     {
-        self::$databaseType = strtolower(DI::get('db.driver'));
+        self::$databaseType = strtolower(Orm::getConfig('db.driver'));
     }
 
     /**

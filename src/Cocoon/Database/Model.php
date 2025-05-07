@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 namespace Cocoon\Database;
 
-use ArrayAccess;
-use Cocoon\Database\Query\Builder;
-use Cocoon\Exception\ModelException;
-use Cocoon\Utilities\Strings;
 use Exception;
+use ArrayAccess;
+use Cocoon\Utilities\Strings;
+use Cocoon\Database\Query\Builder;
+use Cocoon\Database\Exception\ModelException;
+use Cocoon\Database\Traits\HasRelationTrait;
+use Cocoon\Database\Traits\HasObserversTrait;
+use Cocoon\Database\Traits\MutatorAccessorTrait;
 
 /**
  * Class Model
@@ -20,6 +23,10 @@ abstract class Model implements ArrayAccess
      * @var string
      */
     protected static $table = null;
+    /**
+     * @var int|null
+     */
+    protected $id = null;
     /**
      * Enregistre les champs date pour renvoyer une instance de Carbon Datetime
      *
@@ -113,7 +120,7 @@ abstract class Model implements ArrayAccess
     /**
      * Retourne l'id de l'enregistrement demandée
      *
-     * @return array|numeric|null
+     * @return array|numeric|int|null
      */
     public function getId()
     {
@@ -223,7 +230,7 @@ abstract class Model implements ArrayAccess
      * @param null|int|array $paginate ['perpage' => 10, 'styling' => 'basic; 'delta' => 3];
      * @param string $orderByField
      * @param string $order
-     * @return null
+     * @return array|object
      */
     public static function findAll($fields = '', $paginate = null, $orderByField = 'id', $order = 'desc')
     {
@@ -314,7 +321,7 @@ abstract class Model implements ArrayAccess
      * A utilser pour charger les relations par eager loading
      *
      * @param string|array $relations
-     * @return void
+     * @return Builder
      */
     public static function with($relations)
     {
@@ -425,7 +432,7 @@ abstract class Model implements ArrayAccess
      * }
      * </code>
      *
-     * @return array
+     *
      */
     public function observe()
     {

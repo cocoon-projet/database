@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Cocoon\Database\Relation;
 
-use Cocoon\Dependency\DI;
+use Cocoon\Database\Orm;
 use Cocoon\Pager\Paginator;
 use Cocoon\Utilities\Strings;
 use Cocoon\Collection\Collection;
@@ -96,6 +96,7 @@ class HasMany
 
     public function getByEagerloading($collection, $entity)
     {
+        $result = [];
         foreach ($collection as $collect) {
             $foreign = $this->foreignKey;
             $local = $this->localKey;
@@ -105,14 +106,13 @@ class HasMany
         }
         if ($this->paginationRelated) {
             $array = $result;
-            //dumpe($array);
             $items = ($count = count($array))
                 ? $result
                 : new Collection([]);
             $config = new PaginatorConfig($items, $count);
             $config->setPerPage($this->paginationRelatedOptions['perpage']);
             $config->setStyling($this->paginationRelatedOptions['styling']);
-            $config->setCssFramework(DI::get('pagination.renderer'));
+            $config->setCssFramework(Orm::getConfig('pagination.renderer'));
             return new Paginator($config);
         }
         return new Collection($result);

@@ -26,10 +26,18 @@ class BelongsToMany
         $refModelTable = $refModel::getTableName();
         $this->related = $related;
         $this->refModel = $refModel;
-        $this->keyOne = $refModelTable . '.' . Strings::singular($model::getTableName())
-            . '_id' ?? $refModelTable . '.' . $KeyOne;
-        $this->keyTwo = $refModelTable . '.' . Strings::singular($related::getTableName())
-            .  '_id' ?? $refModelTable . '.' . $keyTwo;
+        if ($KeyOne) {
+            $this->keyOne = $refModelTable . '.' . $KeyOne;
+        } else {
+            $this->keyOne = $refModelTable . '.' . Strings::singular($model::getTableName())
+                . '_id';
+        }
+        if ($keyTwo) {
+            $this->keyTwo = $refModelTable . '.' . $keyTwo;
+        } else {
+            $this->keyTwo = $refModelTable . '.' . Strings::singular($related::getTableName())
+                .  '_id';
+        }
     }
 
     protected function lazyLoadingConditions()
@@ -76,7 +84,7 @@ class BelongsToMany
         } else {
             $this->query->setModel($this->related);
             $this->lazyLoadingConditions();
-            $result = collection($this->query->get());
+            $result = new Collection($this->query->get());
         }
         //dd($result);
         return $result;

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Cocoon\Database\Query;
 
-use Cocoon\Dependency\DI;
+use Cocoon\Database\Orm;
 use Cocoon\FileSystem\File;
 use Cocoon\Pager\Paginator;
 use Cocoon\Database\Query\Cast;
@@ -62,7 +62,7 @@ class Builder
 
     public function __construct()
     {
-        $this->db = DI::get('db.connection');
+        $this->db = Orm::getConfig('db.connection');
         Cast::setDatabaseType();
     }
     public function cache($id, $ttl = 3600): static
@@ -100,10 +100,11 @@ class Builder
     {
         $this->type = self::INSERTING;
         $this->dataInsert = array_keys($data);
-        foreach ($data as $k => $v) {
-            $this->bindParams[] = $v;
+        foreach ($data as $v) {
+            $this->bindParams[] = $v ?? null;
             $this->preparDataInsert[] = '?';
         }
+        //dumpe($this->getSql());
         $stmt = $this->db->prepare($this->getSql());
         if (count($this->getBindParams()) > 0) {
             $stmt->execute($this->getBindParams());
@@ -128,12 +129,8 @@ class Builder
     {
         $this->type = self::UPDATING;
         foreach ($data as $k => $v) {
-            if (is_string($v) && (strpos($v, " + ") !== false || strpos($v, " - ") !== false)) {
-                $this->set[] = $k . ' = ' . $v;
-            } else {
                 $this->set[] = $k . ' = ?';
                 $this->bindParams[] = $v;
-            }
         }
         $stmt = $this->db->prepare($this->getSql());
         if (count($this->getBindParams()) > 0) {
@@ -152,12 +149,13 @@ class Builder
      */
     public function increment($field, $more = 1, $columns = null): void
     {
-        $data[$field] = $field . ' + ' . $more;
+        $this->set[] = $field . ' = ' . $field . ' + ?';
+        $this->bindParams[] = $more;
         if ($columns != null) {
             $keys = array_keys($columns);
-            $this->where($keys[0], $columns[$keys[0]])->update($data);
+            $this->where($keys[0], $columns[$keys[0]])->update([]);
         } else {
-            $this->update($data);
+            $this->update([]);
         }
     }
 
@@ -170,13 +168,13 @@ class Builder
      */
     public function decrement($field, $less = 1, $columns = null): void
     {
-        $data[$field] = $field . ' -  ' . $less;
+        $this->set[] = $field . ' = ' . $field . ' - ?';
+        $this->bindParams[] = $less;
         if ($columns != null) {
             $keys = array_keys($columns);
-            $this->where($keys[0], $columns[$keys[0]])->update($data);
-            $this->where($columns)->update($data);
+            $this->where($keys[0], $columns[$keys[0]])->update([]);
         } else {
-            $this->update($data);
+            $this->update([]);
         }
     }
 
@@ -627,7 +625,7 @@ class Builder
         $config = new PaginatorConfig($items, $count);
         $config->setPerPage($this->perpage);
         $config->setStyling($this->pagerLinksMode);
-        $config->setCssFramework(DI::get('pagination.renderer'));
+        $config->setCssFramework(Orm::getConfig('pagination.renderer'));
         return new Paginator($config);
     }
 
@@ -718,11 +716,11 @@ class Builder
      */
     public function get()
     {
-        if ($this->cache == true && File::hasAndIsExpired(DI::get('db.cache.path')
+        if ($this->cache == true && File::hasAndIsExpired(Orm::getConfig('db.cache.path')
                 . md5($this->cacheParams['id'])
                 . $this->cachePrefix, $this->cacheParams['ttl'])
         ) {
-            return unserialize(File::read(DI::get('db.cache.path')
+            return unserialize(File::read(Orm::getConfig('db.cache.path')
                 . md5($this->cacheParams['id'])
                 . $this->cachePrefix));
         }
@@ -743,7 +741,7 @@ class Builder
 
         $stmt = null;
         if ($this->cache) {
-            File::put(DI::get('db.cache.path') . md5($this->cacheParams['id'])
+            File::put(Orm::getConfig('db.cache.path') . md5($this->cacheParams['id'])
                 . $this->cachePrefix, serialize($result));
         }
         return $result;
@@ -794,13 +792,19 @@ class Builder
         }
         return $result;
     }
-
-    public function with($relations = null): static
+    /**
+     *
+     *
+     * @param mixed $relations
+     * @return Builder
+     */
+    public function with(string|array $relations = null): static
     {
         if (is_string($relations)) {
             $this->with[] = $relations;
+        } else {
+            $this->with = array_unique($relations);
         }
-        $this->with = array_unique($relations);
         return $this;
     }
 

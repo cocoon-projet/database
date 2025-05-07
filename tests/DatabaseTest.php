@@ -22,7 +22,7 @@ class DatabaseTest extends TestCase
             ]
         ];
         Orm::manager($config['db_connection'], $config['db']['sqlite']);
-        $this->pdo = DI::get('db.connection');
+        $this->pdo = Orm::getConfig('db.connection');
         $this->pdo->exec('CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username VARCHAR(255) NOT NULL,
@@ -137,8 +137,8 @@ class DatabaseTest extends TestCase
 
     public function testConnection()
     {
-        $this->assertIsObject(DI::get('db.connection'));
-        $this->assertInstanceOf(PDO::class, DI::get('db.connection'));
+        $this->assertIsObject(Orm::getConfig('db.connection'));
+        $this->assertInstanceOf(PDO::class, Orm::getConfig('db.connection'));
     }
 
     public function testQueryBuilder()

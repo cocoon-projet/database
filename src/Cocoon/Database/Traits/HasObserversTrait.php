@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Cocoon\Database;
+namespace Cocoon\Database\Traits;
 
 trait HasObserversTrait
 {

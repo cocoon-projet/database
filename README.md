@@ -12,5 +12,26 @@ via composer
 ```
 composer require cocoon-projet/database
 ```
-## Documentation
+## Connexion
+
+## Query Builder
+
+## Utilisation des Model
+
+## Crud
+
+## Pagination
+
+## Scopes
+
+## Mutators & Accessors
+
+## Méthodes magiques
+
+## Transactions
+
+ ## Observers
+
+
+
 

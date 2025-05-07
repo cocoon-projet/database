@@ -3,6 +3,8 @@
 /bootstrap
 /config
 /database
+/examples
+/prompts
 /.idea
 index.php
 composer.lock

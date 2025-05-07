@@ -23,7 +23,7 @@ class BuilderTest extends TestCase
             ]
         ];
         Orm::manager($config['db_connection'], $config['db']['sqlite']);
-        $this->pdo = DI::get('db.connection');
+        $this->pdo = Orm::getConfig('db.connection');
 
         // Création des tables
         $this->pdo->exec('CREATE TABLE users (

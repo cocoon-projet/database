@@ -14,7 +14,7 @@ class DatabaseConnection
     /**
      * Se connecte à la base de donnée definit en configuration
      *
-     * @return Instance \Cocoon\Engine\Mysql ou Sqlite
+     * @return <object data="" type=""></object> \Cocoon\Engine\Mysql ou Sqlite
      */
     public static function make($engine, $db_config)
     {

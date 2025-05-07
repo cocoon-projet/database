@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Cocoon\Database;
+namespace Cocoon\Database\Traits;
 
 use Cocoon\Utilities\Strings;
 
@@ -57,7 +57,7 @@ trait MutatorAccessorTrait
             return $this->$accessor($this->data[$name]);
         }
         if ($this->isDateTime($name)) {
-            return datetime($this->data[$name]);
+            return date('Y-m-d H:i:s', strtotime($this->data[$name]));
         }
 
         if (isset($this->data[$name])) {
@@ -73,7 +73,7 @@ trait MutatorAccessorTrait
      * Détermine si le champ est de type date
      *
      * @param string $key
-     * @return boo!
+     * @return bool
      */
     protected function isDateTime($key)
     {

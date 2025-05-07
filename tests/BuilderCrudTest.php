@@ -25,7 +25,7 @@ class BuilderCrudTest extends TestCase
             ]
         ];
         Orm::manager($config['db_connection'], $config['db']['sqlite']);
-        $this->pdo = DI::get('db.connection');
+        $this->pdo = Orm::getConfig('db.connection');
         $this->pdo->exec('CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username VARCHAR(255) NOT NULL,

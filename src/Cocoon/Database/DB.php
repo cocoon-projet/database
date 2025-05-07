@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Cocoon\Database;
 
+use Cocoon\Database\Orm;
 use Cocoon\Database\Query\Raw;
-use Cocoon\Dependency\DI;
 use Cocoon\Database\Query\Builder;
 
 /**
@@ -16,7 +16,7 @@ class DB
 
     /**
      * Gestion native des requêtes sql
-     * ex: DB::query('select * from articles);
+     *
      *
      * @param $sql
      * @param array $bindParams
@@ -24,7 +24,7 @@ class DB
      */
     public static function query($sql, $bindParams = [])
     {
-        $stmt = (DI::get('db.connection'))->prepare($sql);
+        $stmt = (Orm::getConfig('db.connection'))->prepare($sql);
         if (count($bindParams) > 0) {
             $stmt->execute($bindParams);
         } else {
@@ -49,18 +49,16 @@ class DB
         return Builder::init()->from($table);
     }
 
-    // ...existing code...
-
-/**
- * Crée une expression SQL brute
- *
- * @param string $value L'expression SQL
- * @return \Cocoon\Database\Query\Raw
- */
+    /**
+     * Crée une expression SQL brute
+     *
+     * @param string $value L'expression SQL
+     * @return \Cocoon\Database\Query\Raw
+     */
     public static function raw($value)
     {
         return new Raw($value);
     }
 
-// ...existing code...
+    // ...existing code...
 }
