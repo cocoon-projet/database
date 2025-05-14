@@ -1164,7 +1164,7 @@ class Builder
         
         if (!File::has($cachePath)) {
             throw CacheException::fileNotAccessible(
-                $cachePath, 
+                $cachePath,
                 "Le fichier de cache n'existe pas"
             );
         }
@@ -1173,7 +1173,7 @@ class Builder
         
         if ($cacheContent === false) {
             throw CacheException::readError(
-                $cachePath, 
+                $cachePath,
                 "Impossible de lire le contenu du fichier de cache"
             );
         }
@@ -1182,7 +1182,7 @@ class Builder
         
         if ($data === false) {
             throw CacheException::readError(
-                $cachePath, 
+                $cachePath,
                 "Le contenu du fichier de cache est corrompu"
             );
         }

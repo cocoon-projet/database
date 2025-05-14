@@ -98,4 +98,4 @@ class TransactionException extends DatabaseException
             ['reason' => $reason]
         );
     }
-} 
+}

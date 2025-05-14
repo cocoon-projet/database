@@ -65,4 +65,4 @@ class DatabaseException extends Exception
         $this->context[$key] = $value;
         return $this;
     }
-} 
+}

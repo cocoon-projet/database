@@ -110,4 +110,4 @@ class RelationException extends DatabaseException
             ['model_class' => $modelClass, 'relation_name' => $relationName]
         );
     }
-} 
+}

@@ -110,4 +110,4 @@ class CacheException extends DatabaseException
             ['directory' => $directory, 'reason' => $reason]
         );
     }
-} 
+}

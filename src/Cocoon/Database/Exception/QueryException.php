@@ -40,14 +40,14 @@ class QueryException extends DatabaseException
     
     /**
      * Requête SQL qui a causé l'exception
-     * 
+     *
      * @var string|null
      */
     protected ?string $sqlQuery = null;
     
     /**
      * Paramètres de la requête
-     * 
+     *
      * @var array|null
      */
     protected ?array $bindParams = null;
@@ -134,4 +134,4 @@ class QueryException extends DatabaseException
             $bindParams
         );
     }
-} 
+}
