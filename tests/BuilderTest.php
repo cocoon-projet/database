@@ -12,9 +12,10 @@ class BuilderTest extends TestCase
     protected function setUp(): void
     {
         $config = [
-            'db_connection' => 'sqlite',
+            'db_driver' => 'sqlite',
             'db' => [
                 'sqlite' => [
+                    'base_path' => '',
                     'path' => ':memory:',
                     'mode' => 'testing',
                     'pagination_renderer' => 'bootstrap5',
@@ -22,7 +23,7 @@ class BuilderTest extends TestCase
                 ]
             ]
         ];
-        Orm::manager($config['db_connection'], $config['db']['sqlite']);
+        Orm::manager($config['db_driver'], $config['db'][$config['db_driver']]);
         $this->pdo = Orm::getConfig('db.connection');
 
         // Création des tables

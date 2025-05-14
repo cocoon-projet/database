@@ -15,9 +15,10 @@ class ModelFinderTest extends TestCase
     protected function setUp(): void
     {
         $config = [
-            'db_connection' => 'sqlite',
+            'db_driver' => 'sqlite',
             'db' => [
                 'sqlite' => [
+                    'base_path' => '',
                     'path' => ':memory:',
                     'mode' => 'testing',
                     'pagination_renderer' => 'bootstrap5',
@@ -25,7 +26,7 @@ class ModelFinderTest extends TestCase
                 ]
             ]
         ];
-        Orm::manager($config['db_connection'], $config['db']['sqlite']);
+        Orm::manager($config['db_driver'], $config['db'][$config['db_driver']]);
         $this->pdo = Orm::getConfig('db.connection');
         $this->pdo->exec('CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
