@@ -22,7 +22,7 @@ abstract class Model implements ArrayAccess
     /**
      * @var string
      */
-    protected static $table = null;
+    protected static ?string $table = null;
     /**
      * @var int|null
      */
@@ -124,7 +124,7 @@ abstract class Model implements ArrayAccess
      */
     public function getId()
     {
-        return $this->id;
+        return (int) $this->id;
     }
 
     /**
@@ -147,7 +147,6 @@ abstract class Model implements ArrayAccess
      */
     public function save()
     {
-        //$this->__unset($this->primaryKey);
         if ($this->isNew) {
             $this->runObserver('beforeSave');
             $this->id = Builder::init()->into(static::getTableName())->insert($this->data);
@@ -226,55 +225,64 @@ abstract class Model implements ArrayAccess
     /**
      * Retourne une liste de données avec ou sans pagination
      *
-     * @param string $fields
-     * @param null|int|array $paginate ['perpage' => 10, 'styling' => 'basic; 'delta' => 3];
-     * @param string $orderByField
-     * @param string $order
-     * @return array|object
+     * @param string $fields Champs à sélectionner
+     * @param int|array|null $paginate Options de pagination :
+     *      - int : nombre d'éléments par page
+     *      - array : ['perpage' => 10, 'styling' => 'basic', 'delta' => 3]
+     * @param string $orderByField Champ de tri
+     * @param string $order Direction du tri ('asc' ou 'desc')
+     * @return array|object Résultat de la requête
      */
-    public static function findAll($fields = '', $paginate = null, $orderByField = 'id', $order = 'desc')
-    {
-        if (is_array($paginate) or is_numeric($paginate)) {
-            $perpage = $paginate['perpage'] ?? $paginate;
-            $options['styling'] = $paginate['styling'] ?? null;
-            $options['delta'] = $paginate['delta'] ?? null;
-            $result = Builder::init(get_called_class())
-                    ->select($fields)
-                    ->from(static::getTableName())
-                    ->orderBy($orderByField, $order)
-                    ->paginate($perpage, $options['styling']);
-            return $result;
+    public static function findAll(
+        string $fields = '', 
+        int|array|null $paginate = null, 
+        string $orderByField = 'id', 
+        string $order = 'desc'
+    ): array|object {
+        $query = Builder::init(get_called_class())
+            ->select($fields)
+            ->from(static::getTableName())
+            ->orderBy($orderByField, $order);
+
+        if ($paginate === null) {
+            return $query->get();
         }
-        $data = Builder::init(get_called_class())->select($fields)
-                ->from(static::getTableName())
-                ->orderBy($orderByField, $order)
-                ->get();
-        return $data;
+
+        $perpage = is_array($paginate) ? ($paginate['perpage'] ?? 10) : $paginate;
+        $options = [
+            'styling' => $paginate['styling'] ?? null,
+            'delta' => $paginate['delta'] ?? null
+        ];
+
+        return $query->paginate($perpage, $options['styling']);
     }
 
     /**
-     * Retourne une donnée ou une liste de donnée en precisant
-     * l'id ou array(1,2,3)
+     * Retourne une donnée ou une liste de données en fonction de l'ID fourni
      *
-     * @param null|int|array $id
-     * @param string $fields
-     * @return array
+     * @param int|array|null $id ID unique ou tableau d'IDs à rechercher
+     * @param string $fields Champs à sélectionner
+     * @return array|object|null Résultat de la recherche
+     *      - Un seul objet si un ID unique est fourni
+     *      - Un tableau d'objets si un tableau d'IDs est fourni
+     *      - null si aucun résultat n'est trouvé
      */
-    public static function find($id = null, $fields = '')
+    public static function find(int|array|null $id = null, string $fields = ''): array|object|null
     {
-        if (is_array($id)) {
-            $data = Builder::init(get_called_class())
-                    ->select($fields)
-                    ->from(static::getTableName())
-                    ->in('id', $id)->get();
-        } else {
-            $result = Builder::init(get_called_class())
-                    ->select($fields)
-                    ->from(static::getTableName())
-                    ->where('id', $id)->get();
-            $data = count($result) == 1 ? $result[0] : null;
+        $query = Builder::init(get_called_class())
+            ->select($fields)
+            ->from(static::getTableName());
+
+        if ($id === null) {
+            return null;
         }
-        return $data;
+
+        if (is_array($id)) {
+            return $query->in('id', $id)->get();
+        }
+
+        $result = $query->where('id', $id)->get();
+        return count($result) === 1 ? $result[0] : null;
     }
 
     /**
@@ -329,79 +337,110 @@ abstract class Model implements ArrayAccess
     }
 
     /**
-     * Méthode magique pour trouver rapidement des données
-     * avec des conditions spécifiques.
+     * Gère les appels de méthodes statiques dynamiques sur le modèle.
+     * Permet d'utiliser des méthodes comme :
+     * - findBy* : User::findByEmail('test@example.com')
+     * - countBy* : User::countByStatus('active')
+     * - updateBy* : User::updateByEmail('test@example.com', ['status' => 'inactive'])
      *
-     * <code>
-     * Users::findBydId(10);
-     * Users::findById([10,11,12]);
-     * Users::findByNomAndPrenom('Dupont','Henri');
-     * Users::findByNom(['Dupont','Gillet']);
-     * Users::countByNom(['Dupont','Gillet']);
-     * Users::countByNom('Dupont');
-     * </code>
-     *
-     * @param string $method
-     * @param string|int|array $args
-     * @return int|array
-     * @throws \Exception
+     * @param string $method Nom de la méthode appelée
+     * @param array $args Arguments passés à la méthode
+     * @return mixed Résultat de la méthode
+     * @throws ModelException Si la méthode n'existe pas
      */
-    public static function __callStatic(string $method, $args)
+    public static function __callStatic(string $method, array $args): mixed
     {
-        if (preg_match('/^(find|count)By(\w+)$/', $method, $matches)) {
-            $criteriaKeys = explode('And', $matches[2]);
-            $criteriaKeys = array_map('strtolower', $criteriaKeys);
-            $keys = [];
-            foreach ($criteriaKeys as $val) {
-                $keys[] = $val;
-            }
-            $criteriaValues = array_slice($args, 0, count($keys));
-
-            $conditions = array_combine($keys, $criteriaValues);
-            $key = array_keys($conditions);
-            $value = array_values($conditions);
-
-            $method = $matches[1];
-            if ($method == 'find') {
-                $req = static::select();
-                if (!is_array($value[0])) {
-                    $req->where($key[0], $value[0]);
-                } else {
-                    $req->in($criteriaKeys[0], $value[0]);
-                }
-                $conditions = array_slice($conditions, 1);
-
-                if (count($conditions) >= 1) {
-                    foreach ($conditions as $key => $value) {
-                        $req->and($key, $value);
-                    }
-                }
-                $result = $req->get();
-                return count($result) == 1 ? $result[0] : $result;
-            } elseif ($method == 'count') {
-                $req = static::select('count(*) as nombres');
-                if (!is_array($value[0])) {
-                    $req->where($key[0], $value[0]);
-                } else {
-                    $req->in($criteriaKeys[0], $value[0]);
-                }
-                $conditions = array_slice($conditions, 1);
-                if (count($conditions) >= 1) {
-                    foreach ($conditions as $key => $value) {
-                        $req->and($key, $value);
-                    }
-                }
-                $result = $req->get();
-                $total_row = $result[0]->nombres;
-                return $total_row;
-            } else {
-                throw new ModelException('la méthode ' . $method . ' n\'existe pas.');
-            }
-        } else {
-            return Builder::init(get_called_class())->from(static::getTableName())->$method(...$args);
+        // Gestion des méthodes findBy* et countBy*
+        if (str_starts_with($method, 'findBy') || str_starts_with($method, 'countBy')) {
+            return self::handleDynamicFindOrCount($method, $args);
         }
+
+        // Gestion des méthodes updateBy*
+        if (str_starts_with($method, 'updateBy')) {
+            return self::handleDynamicUpdate($method, $args);
+        }
+
+        // Transmission des autres appels au Query Builder
+        return Builder::init(static::class)
+            ->from(static::getTableName())
+            ->$method(...$args);
     }
-    // TODO tester cette function model::transaction
+
+    /**
+     * Gère les appels dynamiques des méthodes findBy* et countBy*.
+     * Exemples :
+     * - findByEmailAndStatus('test@example.com', 'active')
+     * - countByStatusAndType('active', 'user')
+     *
+     * @param string $method Nom de la méthode appelée
+     * @param array $args Arguments passés à la méthode
+     * @return mixed Résultat de la recherche ou le nombre d'éléments
+     * @throws ModelException Si une erreur survient
+     */
+    protected static function handleDynamicFindOrCount(string $method, array $args): mixed
+    {
+        $isFind = str_starts_with($method, 'findBy');
+        $prefix = $isFind ? 'findBy' : 'countBy';
+        $criteriaString = substr($method, strlen($prefix));
+        
+        // Découpage des critères par 'And' et conversion en minuscules
+        $criteriaKeys = array_map(
+            'strtolower',
+            explode('And', $criteriaString)
+        );
+
+        // Création du tableau des conditions
+        $conditions = array_combine(
+            $criteriaKeys,
+            array_slice($args, 0, count($criteriaKeys))
+        );
+
+        // Construction de la requête
+        $query = $isFind ? static::select() : static::select('count(*) as count');
+        
+        // Ajout de la première condition
+        $firstKey = array_key_first($conditions);
+        $firstValue = $conditions[$firstKey];
+        
+        if (is_array($firstValue)) {
+            $query->in($firstKey, $firstValue);
+        } else {
+            $query->where($firstKey, $firstValue);
+        }
+
+        // Ajout des conditions restantes
+        $remainingConditions = array_slice($conditions, 1, null, true);
+        foreach ($remainingConditions as $key => $value) {
+            $query->and($key, $value);
+        }
+
+        // Exécution de la requête et retour des résultats
+        $result = $query->get();
+
+        if ($isFind) {
+            return count($result) === 1 ? $result[0] : $result;
+        }
+
+        return $result[0]->count;
+    }
+
+    /**
+     * Gère les appels dynamiques des méthodes updateBy*.
+     * Exemple : updateByEmail('test@example.com', ['status' => 'inactive'])
+     *
+     * @param string $method Nom de la méthode appelée
+     * @param array $args Arguments passés à la méthode
+     * @return bool True si la mise à jour a été effectuée
+     */
+    protected static function handleDynamicUpdate(string $method, array $args): bool
+    {
+        $field = lcfirst(substr($method, 8));
+        static::select()
+            ->where($field, $args[0])
+            ->update($args[1]);
+        return true;
+    }
+
     /**
      * @param $callback
      * @throws Exception

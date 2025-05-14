@@ -58,6 +58,7 @@ class Orm
     protected static array $config = [
         'db.driver' => null,
         'db.connection' => null,
+        'base.path' => null,
         'db.cache.path' => null,
         'pagination.renderer' => null
     ];
@@ -77,6 +78,7 @@ class Orm
         
         // Stocke la configuration
         self::$config = [
+            'base.path' => $db_config['base_path'] ?? null,
             'db.driver' => $engine,
             'db.connection' => self::connection('default'),
             'db.cache.path' => $db_config['db_cache_path'] ?? null,

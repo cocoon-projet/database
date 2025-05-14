@@ -15,25 +15,37 @@ class DB
 {
 
     /**
-     * Gestion native des requêtes sql
+     * Exécute une requête SQL native avec gestion des paramètres liés
      *
-     *
-     * @param $sql
-     * @param array $bindParams
-     * @return mixed
+     * @param string $sql La requête SQL à exécuter
+     * @param array $bindParams Les paramètres à lier à la requête
+     * @return array|object|null Le résultat de la requête
+     * @throws \PDOException Si une erreur survient lors de l'exécution de la requête
      */
-    public static function query($sql, $bindParams = [])
+    public static function query(string $sql, array $bindParams = []): array|object|null
     {
-        $stmt = (Orm::getConfig('db.connection'))->prepare($sql);
-        if (count($bindParams) > 0) {
+        try {
+            $connection = Orm::getConfig('db.connection');
+            if (!$connection instanceof \PDO) {
+                throw new \RuntimeException('La connexion à la base de données n\'est pas valide');
+            }
+
+            $stmt = $connection->prepare($sql);
             $stmt->execute($bindParams);
-        } else {
-            $stmt->execute();
-        }
-        $select = substr(trim($sql), 0, 6);
-        if (strtolower($select) == 'select') {
-            $result = $stmt->fetchAll();
-            return count($result) == 1 ? $result[0] : $result;
+
+            // Vérifie si c'est une requête SELECT
+            if (preg_match('/^\s*SELECT\b/i', $sql)) {
+                $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                return count($result) === 1 ? $result[0] : $result;
+            }
+
+            return null;
+        } catch (\PDOException $e) {
+            throw new \PDOException(
+                "Erreur lors de l'exécution de la requête : " . $e->getMessage(),
+                (int) $e->getCode(),
+                $e
+            );
         }
     }
 
@@ -59,6 +71,4 @@ class DB
     {
         return new Raw($value);
     }
-
-    // ...existing code...
 }

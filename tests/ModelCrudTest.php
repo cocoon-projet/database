@@ -7,7 +7,7 @@ use Cocoon\Dependency\DI;
 use PHPUnit\Framework\TestCase;
 
 class User extends \Cocoon\Database\Model {
-    protected static $table = 'users';
+    protected static ?string $table = 'users';
 }
 class ModelCrudTest extends TestCase
 {
@@ -44,8 +44,8 @@ class ModelCrudTest extends TestCase
 
         $result = DB::query('SELECT * FROM users WHERE username = ?', ['john_doe']);
         $this->assertNotEmpty($result);
-        $this->assertEquals('john_doe', $result->username);
-        $this->assertEquals('john.doe@example.com', $result->email);
+        $this->assertEquals('john_doe', $result['username']);
+        $this->assertEquals('john.doe@example.com', $result['email']);
     }
 
     public function testSaveUpdate()

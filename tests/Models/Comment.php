@@ -2,5 +2,5 @@
 namespace Tests\Models;
 class Comment extends \Cocoon\Database\Model
 {
-    protected static $table = 'comments';
+    protected static ?string $table = 'comments';
 }

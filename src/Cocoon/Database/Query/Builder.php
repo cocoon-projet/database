@@ -11,49 +11,257 @@ use Cocoon\Collection\Collection;
 use Cocoon\Pager\PaginatorConfig;
 
 /**
- * Construit les requêtes sql
+ * Builder de requêtes SQL
+ * 
+ * Cette classe permet de construire et d'exécuter des requêtes SQL de manière fluide et sécurisée.
+ * Elle supporte les opérations CRUD (Create, Read, Update, Delete) ainsi que des fonctionnalités
+ * avancées comme la pagination, le cache et l'eager loading des relations.
  *
- * Class Builder
  * @package Cocoon\Database\Query
  */
 class Builder
 {
-
+    /**
+     * Instance de la connexion à la base de données
+     * 
+     * @var \PDO
+     */
     protected $db;
+
+    /**
+     * Instance unique du Builder (pattern Singleton)
+     * 
+     * @var self|null
+     */
     protected static $instance = null;
+
+    /**
+     * Requête SQL générée
+     * 
+     * @var string
+     */
     protected $sql = '';
+
+    /**
+     * Historique des requêtes SQL exécutées
+     * 
+     * @var array
+     */
     public static $SQLS = [];
+
+    /**
+     * Nom de la table principale
+     * 
+     * @var string
+     */
     private $tableName;
+
+    /**
+     * Classe du modèle associé
+     * 
+     * @var string|null
+     */
     protected $model = null;
+
+    /**
+     * Champs par défaut pour les requêtes SELECT
+     * 
+     * @var string
+     */
     protected $defaultFields = '*';
+
+    /**
+     * Champs spécifiés pour la requête
+     * 
+     * @var string|null
+     */
     protected $setFields;
+
+    /**
+     * Tables additionnelles pour les jointures
+     * 
+     * @var string|null
+     */
     protected $addTable;
+
+    /**
+     * Relations à charger avec eager loading
+     * 
+     * @var array
+     */
     protected $with = [];
+
+    /**
+     * Alias de la table principale
+     * 
+     * @var string
+     */
     protected $alias = '';
+
+    /**
+     * Conditions WHERE
+     * 
+     * @var array
+     */
     protected $where = [];
+
+    /**
+     * Paramètres de liaison pour la requête
+     * 
+     * @var array
+     */
     protected $bindParams = [];
+
+    /**
+     * Paramètres de liaison pour les conditions WHERE
+     * 
+     * @var array
+     */
     protected $bindParamsWhere = [];
+
+    /**
+     * Champs à mettre à jour (UPDATE)
+     * 
+     * @var array
+     */
     protected $set = [];
+
+    /**
+     * Données à insérer (INSERT)
+     * 
+     * @var array
+     */
     protected $preparDataInsert = [];
+
+    /**
+     * Colonnes pour l'insertion
+     * 
+     * @var array
+     */
     protected $dataInsert;
+
+    /**
+     * Limite de résultats
+     * 
+     * @var string
+     */
     protected $limit = '';
+
+    /**
+     * Offset pour la pagination
+     * 
+     * @var string
+     */
     protected $offset = '';
+
+    /**
+     * Clause GROUP BY
+     * 
+     * @var string|null
+     */
     protected $groupBy = null;
+
+    /**
+     * Clause HAVING
+     * 
+     * @var string|null
+     */
     protected $having = null;
+
+    /**
+     * Clause BETWEEN
+     * 
+     * @var string
+     */
     protected $between = '';
+
+    /**
+     * Clause ORDER BY
+     * 
+     * @var string|null
+     */
     protected $order = null;
+
+    /**
+     * Clause DISTINCT
+     * 
+     * @var string
+     */
     protected $distinct = '';
+
+    /**
+     * Jointures
+     * 
+     * @var array
+     */
     protected $join = [];
+
+    /**
+     * Conditions ON pour les jointures
+     * 
+     * @var array
+     */
     protected $on = [];
+
+    /**
+     * Nombre d'éléments par page pour la pagination
+     * 
+     * @var int
+     */
     protected $perpage = 10;
+
+    /**
+     * Colonnes sélectionnées
+     * 
+     * @var array
+     */
     protected $columns = [];
+
+    /**
+     * Mode d'affichage des liens de pagination
+     * 
+     * @var string
+     */
     protected $pagerLinksMode = 'all';
+
+    /**
+     * Type de requête en cours
+     * 
+     * @var int
+     */
     protected $type = self::SELECT;
+
+    /**
+     * IDs pour les requêtes IN
+     * 
+     * @var array
+     */
     protected $ids = [];
+
+    /**
+     * État du cache
+     * 
+     * @var bool
+     */
     protected $cache = false;
+
+    /**
+     * Paramètres du cache
+     * 
+     * @var array
+     */
     protected $cacheParams = [];
+
+    /**
+     * Préfixe pour les fichiers de cache
+     * 
+     * @var string
+     */
     protected $cachePrefix = '_database_cache';
-    //protected $entity = null;
+
+    /**
+     * Constantes pour les types de requêtes
+     */
     const INSERTING = 0;
     const DELETING = 1;
     const UPDATING = 2;
@@ -65,38 +273,78 @@ class Builder
         $this->db = Orm::getConfig('db.connection');
         Cast::setDatabaseType();
     }
-    public function cache($id, $ttl = 3600): static
+
+    /**
+     * Active le cache pour la requête en cours
+     * 
+     * @param string $id Identifiant unique pour le cache
+     * @param int $ttl Durée de vie du cache en secondes (par défaut: 3600)
+     * @return self
+     */
+    public function cache(string $id, int $ttl = 3600): static
     {
         $this->cache = true;
+        //dumpe(Orm::getConfig('db.cache.path'));
+        File::initialize(Orm::getConfig('base.path'));
         $this->cacheParams = ['id' => $id, 'ttl' => $ttl];
         return $this;
     }
 
-    public function from($table): static
+    /**
+     * Spécifie la table principale pour la requête
+     * 
+     * @param string $table Nom de la table
+     * @return self
+     */
+    public function from(string $table): static
     {
         $this->tableName = $table;
         return $this;
     }
 
-    public function setModel($model): static
+    /**
+     * Définit le modèle associé à la requête
+     * 
+     * @param string $model Nom de la classe du modèle
+     * @return self
+     */
+    public function setModel(string $model): static
     {
         $this->model = $model;
         return $this;
     }
 
-    public function into($table): static
+    /**
+     * Spécifie la table pour une insertion
+     * 
+     * @param string $table Nom de la table
+     * @return self
+     */
+    public function into(string $table): static
     {
         $this->tableName = $table;
         return $this;
     }
 
-    public function addTable($table): static
+    /**
+     * Ajoute une table pour une jointure
+     * 
+     * @param string $table Nom de la table à ajouter
+     * @return self
+     */
+    public function addTable(string $table): static
     {
         $this->addTable = ', ' . $table;
         return $this;
     }
 
-    public function insert($data)
+    /**
+     * Insère des données dans la table
+     * 
+     * @param array $data Données à insérer [colonne => valeur]
+     * @return int|string ID de la dernière insertion
+     */
+    public function insert(array $data): int|string
     {
         $this->type = self::INSERTING;
         $this->dataInsert = array_keys($data);
@@ -104,7 +352,7 @@ class Builder
             $this->bindParams[] = $v ?? null;
             $this->preparDataInsert[] = '?';
         }
-        //dumpe($this->getSql());
+        
         $stmt = $this->db->prepare($this->getSql());
         if (count($this->getBindParams()) > 0) {
             $stmt->execute($this->getBindParams());
@@ -114,23 +362,28 @@ class Builder
         return $this->lastInsertId();
     }
 
-    public function lastInsertId()
+    /**
+     * Retourne l'ID de la dernière insertion
+     * 
+     * @return int|string
+     */
+    public function lastInsertId(): int|string
     {
         return $this->db->lastInsertId();
     }
 
-    protected function getSet(): string
-    {
-        $_set = $this->set;
-        $set = implode(', ', $_set);
-        return $set;
-    }
-    public function update($data): void
+    /**
+     * Met à jour des données dans la table
+     * 
+     * @param array $data Données à mettre à jour [colonne => valeur]
+     * @return void
+     */
+    public function update(array $data): void
     {
         $this->type = self::UPDATING;
         foreach ($data as $k => $v) {
-                $this->set[] = $k . ' = ?';
-                $this->bindParams[] = $v;
+            $this->set[] = $k . ' = ?';
+            $this->bindParams[] = $v;
         }
         $stmt = $this->db->prepare($this->getSql());
         if (count($this->getBindParams()) > 0) {
@@ -138,6 +391,78 @@ class Builder
         } else {
             $stmt->execute();
         }
+    }
+
+    /**
+     * Supprime des enregistrements de la table
+     * 
+     * @return void
+     */
+    public function delete(): void
+    {
+        $this->type = self::DELETING;
+        $stmt = $this->db->prepare($this->getSql());
+        if (count($this->getBindParams()) > 0) {
+            $stmt->execute($this->getBindParams());
+        } else {
+            $stmt->execute();
+        }
+    }
+
+    /**
+     * Initialise une nouvelle instance du Builder
+     * 
+     * @param string|null $model Nom de la classe du modèle
+     * @return self|null
+     */
+    public static function init(?string $model = null): ?self
+    {
+        self::$instance = new self();
+        if ($model !== null) {
+            self::$instance->setModel($model);
+        }
+        return self::$instance;
+    }
+
+    /**
+     * Sélectionne des champs spécifiques
+     * 
+     * @param string|array $fields Champs à sélectionner
+     * @return self
+     */
+    public function select(string|array $fields): static
+    {
+        if (!is_array($fields)) {
+            $fields = [$fields];
+        }
+        foreach ($fields as $column) {
+            if ($column instanceof Raw) {
+                $this->columns[] = $column->getValue();
+            } else {
+                $this->columns[] = $column;
+            }
+        }
+        $this->setFields = implode(', ', $this->columns);
+        return $this;
+    }
+
+    /**
+     * Retourne le nombre total d'enregistrements
+     * 
+     * @return int
+     */
+    public function count(): int
+    {
+        $this->select('count(*) as total');
+        $result = $this->get();
+        return (int) $result[0]->total;
+    }
+
+    protected function getSet(): string
+    {
+        $_set = $this->set;
+        $set = implode(', ', $_set);
+        return $set;
     }
 
     /**
@@ -178,16 +503,6 @@ class Builder
         }
     }
 
-    public function delete(): void
-    {
-        $this->type = self::DELETING;
-        $stmt = $this->db->prepare($this->getSql());
-        if (count($this->getBindParams()) > 0) {
-            $stmt->execute($this->getBindParams());
-        } else {
-            $stmt->execute();
-        }
-    }
     protected function getAddTable()
     {
         return $this->addTable;
@@ -202,58 +517,6 @@ class Builder
     protected function getAlias()
     {
         return $this->alias;
-    }
-
-    /**
-     * Initialise le Query Builder
-     *
-     * @param null|string $model
-     * @return Builder
-     */
-    public static function init($model = null): ?Builder
-    {
-        self::$instance = new Builder();
-        if ($model != null) {
-            self::$instance->setModel($model);
-        }
-        return self::$instance;
-    }
-
-    /**
-     * Selection des champs de la table
-     *
-     * @param string|array $fields
-     * @return $this
-     */
-    public function select($fields): static
-    {
-        if (!is_array($fields)) {
-            $fields = [$fields];
-        }
-        foreach ($fields as $column) {
-            if ($column instanceof Raw) {
-                $this->columns[] = $column->getValue();
-            } else {
-                $this->columns[] = $column;
-            }
-        }
-        //dump($this->columns);
-        //dumpe(implode(', ', $this->columns));
-        $this->setFields = implode(', ', $this->columns);
-        return $this;
-    }
-
-    /**
-     * Retounne le nombre d'enregistrement d'une table
-     *
-     * @return int
-     */
-    public function count()
-    {
-        $this->select('count(*) as total ');
-        $result = $this->get();
-        $total = $result[0]->total;
-        return $total;
     }
 
     /**
@@ -466,9 +729,22 @@ class Builder
         return $this;
     }
 
-    protected function getLimit()
+    /**
+     * Génère la clause LIMIT pour la requête SQL
+     * 
+     * @return string La clause LIMIT formatée
+     * @throws \InvalidArgumentException Si les valeurs de limite ou d'offset sont invalides
+     */
+    protected function getLimit(): string
     {
-        return $this->db->limit($this->limit, $this->offset);
+        $limit = $this->limit ? (int)$this->limit : 0;
+        $offset = $this->offset ? (int)$this->offset : 0;
+
+        if ($limit < 0 || $offset < 0) {
+            throw new \InvalidArgumentException('Les valeurs de limite et d\'offset doivent être positives');
+        }
+
+        return $this->db->limit($limit, $offset);
     }
 
     public function groupBy(): static
@@ -591,14 +867,28 @@ class Builder
         return $this->order ?? '';
     }
 
-    public function leftJoin($table, $on = null): static
+    /**
+     * Effectue une jointure LEFT JOIN
+     * 
+     * @param string $table Nom de la table à joindre
+     * @param string|null $on Condition de jointure
+     * @return self
+     */
+    public function leftJoin(string $table, ?string $on = null): static
     {
         $table = strtolower($table);
         $this->join[] = ' LEFT JOIN ' . $table . ' ON ' . $on;
         return $this;
     }
 
-    public function innerJoin($table, $on = null): static
+    /**
+     * Effectue une jointure INNER JOIN
+     * 
+     * @param string $table Nom de la table à joindre
+     * @param string|null $on Condition de jointure
+     * @return self
+     */
+    public function innerJoin(string $table, ?string $on = null): static
     {
         $table = strtolower($table);
         $this->join[] = ' INNER JOIN ' . $table . ' ON ' . $on;
@@ -611,139 +901,291 @@ class Builder
         return $join;
     }
 
-    public function paginate($perpage = null, $mode = null): Paginator
+    /**
+     * Récupère les éléments pour la pagination
+     * 
+     * @return array{items: Collection|self|array, count: int} Tableau contenant les éléments et leur nombre
+     */
+    private function getItemsForPagination(): array
     {
-        if ($perpage != null) {
-            $this->perpage = $perpage;
-        }
-        if ($mode != null) {
-            $this->pagerLinksMode = $mode;
-        }
-        $items = ($count = count($this->get()))
-        ? $this
-        : new Collection([]);
-        $config = new PaginatorConfig($items, $count);
+        $results = $this->get();
+        $count = count($results);
+        $items = $count > 0 ? $this : new Collection([]);
+        
+        return [
+            'items' => $items,
+            'count' => $count
+        ];
+    }
+
+    /**
+     * Crée la configuration du paginateur
+     * 
+     * @param array{items: Collection|self|array, count: int} $data Données de pagination
+     * @return PaginatorConfig Configuration du paginateur
+     */
+    private function createPaginatorConfig(array $data): PaginatorConfig
+    {
+        $config = new PaginatorConfig($data['items'], $data['count']);
         $config->setPerPage($this->perpage);
         $config->setStyling($this->pagerLinksMode);
         $config->setCssFramework(Orm::getConfig('pagination.renderer'));
+        
+        return $config;
+    }
+
+    /**
+     * Pagine les résultats de la requête
+     * 
+     * @param int|null $perpage Nombre d'éléments par page
+     * @param string|null $mode Mode d'affichage des liens de pagination ('basic', 'all', etc.)
+     * @return Paginator Instance du paginateur
+     * @throws \InvalidArgumentException Si le nombre d'éléments par page est invalide
+     */
+    public function paginate(?int $perpage = null, ?string $mode = null): Paginator
+    {
+        $this->validatePaginationParameters($perpage, $mode);
+        
+        $paginationData = $this->getItemsForPagination();
+        $config = $this->createPaginatorConfig($paginationData);
+        
         return new Paginator($config);
     }
 
-
-    public function getSql(): string
+    /**
+     * Valide les paramètres de pagination
+     * 
+     * @param int|null $perpage Nombre d'éléments par page
+     * @param string|null $mode Mode d'affichage
+     * @throws \InvalidArgumentException Si les paramètres sont invalides
+     */
+    private function validatePaginationParameters(?int $perpage, ?string $mode): void
     {
-        switch ($this->type) {
-            case 0:
-                $this->sql = "INSERT INTO "
-                    . $this->getTableName()
-                    . '(' . implode(',', $this->dataInsert) . ')'
-                    . ' VALUES (' . implode(', ', $this->preparDataInsert) . ')';
-                break;
-            case 1:
-                $where = $this->getWhere();
-                $this->sql = 'DELETE FROM ' . $this->getTableName() .
-                    (!empty($where) ? (' WHERE ' . $where . '') : '');
-                break;
-            case 2:
-                $where = $this->getWhere();
-                $_set = $this->getSet();
-                $this->sql = 'UPDATE ' . $this->getTableName() .
-                    (!empty($_set) ? (' SET ' . $_set . '') : '') .
-                    (!empty($where) ? (' WHERE ' . $where . '') : '');
-                break;
-            case 3:
-                //TODO between a tester
-                $iLimit = $this->getLimit();
-                $where = $this->getWhere();
-                $groupBy = $this->getGroupBy();
-                $having = $this->getHaving();
-                $order = $this->getOrder();
-
-                $this->sql = 'SELECT ' . $this->getSelect() .
-                    ' FROM ' . $this->getTableName() . $this->getAlias() .
-                    $this->getAddTable() . $this->getJoin() .
-                    (!empty($where) ? (' WHERE ' . $where . '') : '') .
-                    (!empty($groupBy) ? (' GROUP BY ' . $groupBy . '') : '') .
-                    (!empty($having) ? (' HAVING ' . $having . '') : '') .
-                    ($order != null ? ($order) : '') .
-                    $iLimit;
+        if ($perpage !== null) {
+            if ($perpage <= 0) {
+                throw new \InvalidArgumentException('Le nombre d\'éléments par page doit être supérieur à 0');
+            }
+            $this->perpage = $perpage;
         }
-        static::$SQLS[] = trim($this->sql);
-        return trim($this->sql);
+
+        if ($mode !== null) {
+            $this->pagerLinksMode = $mode;
+        }
     }
 
     /**
-     * Retourne le ou les premiers enregistrements
-     *
-     * @param int $first
-     * @return array|int
+     * Génère la requête SQL en fonction du type d'opération
+     * 
+     * @return string La requête SQL générée
      */
-    public function first(int $first = 1)
+    public function getSql(): string 
+    {
+        $sql = match($this->type) {
+            0 => $this->buildInsertSql(),
+            1 => $this->buildDeleteSql(),
+            2 => $this->buildUpdateSql(),
+            3 => $this->buildSelectSql(),
+            default => throw new \InvalidArgumentException('Type de requête invalide')
+        };
+
+        static::$SQLS[] = trim($sql);
+        return trim($sql);
+    }
+
+    /**
+     * Construit la requête SQL pour une insertion
+     * 
+     * @return string
+     */
+    private function buildInsertSql(): string 
+    {
+        return "INSERT INTO " . $this->getTableName() 
+            . '(' . implode(',', $this->dataInsert) . ')'
+            . ' VALUES (' . implode(', ', $this->preparDataInsert) . ')';
+    }
+
+    /**
+     * Construit la requête SQL pour une suppression
+     * 
+     * @return string
+     */
+    private function buildDeleteSql(): string 
+    {
+        $where = $this->getWhere();
+        return 'DELETE FROM ' . $this->getTableName() 
+            . (!empty($where) ? ' WHERE ' . $where : '');
+    }
+
+    /**
+     * Construit la requête SQL pour une mise à jour
+     * 
+     * @return string
+     */
+    private function buildUpdateSql(): string 
+    {
+        $where = $this->getWhere();
+        $set = $this->getSet();
+        
+        return 'UPDATE ' . $this->getTableName()
+            . (!empty($set) ? ' SET ' . $set : '')
+            . (!empty($where) ? ' WHERE ' . $where : '');
+    }
+
+    /**
+     * Construit la requête SQL pour une sélection
+     * 
+     * @return string
+     */
+    private function buildSelectSql(): string 
+    {
+        $where = $this->getWhere();
+        $groupBy = $this->getGroupBy();
+        $having = $this->getHaving();
+        $order = $this->getOrder();
+        $limit = $this->getLimit();
+
+        return 'SELECT ' . $this->getSelect()
+            . ' FROM ' . $this->getTableName() 
+            . $this->getAlias()
+            . $this->getAddTable() 
+            . $this->getJoin()
+            . (!empty($where) ? ' WHERE ' . $where : '')
+            . (!empty($groupBy) ? ' GROUP BY ' . $groupBy : '')
+            . (!empty($having) ? ' HAVING ' . $having : '')
+            . ($order !== null ? $order : '')
+            . $limit;
+    }
+
+    /**
+     * Retourne les premiers enregistrements
+     * 
+     * @param int $first Nombre d'enregistrements à retourner
+     * @return array|object Résultat de la requête
+     */
+    public function first(int $first = 1): array|object
     {
         $result = $this->orderBy('id', 'asc')->limit($first)->get();
-        return count($result) == 1 ? $result[0] : $result;
+        return count($result) === 1 ? $result[0] : $result;
     }
 
     /**
-     * Retourne le ou les dernierss enregistrements
-     *
-     * @param int $last
-     * @return array
+     * Retourne les derniers enregistrements
+     * 
+     * @param int $last Nombre d'enregistrements à retourner
+     * @return array|object Résultat de la requête
      */
-    public function last($last = 1)
+    public function last(int $last = 1): array|object
     {
         $result = $this->orderBy('id')->limit($last)->get();
-        return count($result) == 1 ? $result[0] : $result;
+        return count($result) === 1 ? $result[0] : $result;
     }
 
     /**
-     * Recupère le nom d'une colonne, indéxé par la colonne id;
-     *
-     * @param string $field
-     * @param string $id
-     * @return array
+     * Récupère une liste de valeurs indexée par une clé
+     * 
+     * @param string $field Champ à récupérer
+     * @param string $id Clé d'indexation (par défaut: 'id')
+     * @return array Liste des valeurs indexée
      */
-    public function lists($field, $id = 'id')
+    public function lists(string $field, string $id = 'id'): array
     {
         $result = $this->get();
         return (new Collection($result))->lists($field, $id)->toArray();
     }
 
     /**
-     * Execute la requete sql et la retourne
-     *
-     * @return array
+     * Exécute la requête SQL et retourne les résultats
+     * 
+     * @return array Résultats de la requête
      */
-    public function get()
+    public function get(): array
     {
-        if ($this->cache == true && File::hasAndIsExpired(Orm::getConfig('db.cache.path')
-                . md5($this->cacheParams['id'])
-                . $this->cachePrefix, $this->cacheParams['ttl'])
-        ) {
-            return unserialize(File::read(Orm::getConfig('db.cache.path')
-                . md5($this->cacheParams['id'])
-                . $this->cachePrefix));
+        // Vérification du cache
+        if ($this->shouldUseCache()) {
+            return $this->getFromCache();
         }
 
-        $stmt = $this->db->prepare($this->getSql());
-        if (count($this->getBindParams()) > 0) {
-            $stmt->execute($this->getBindParams());
-        } else {
-            $stmt->execute();
-        }
-        $result = $stmt->fetchAll();
+        // Exécution de la requête
+        $result = $this->executeQuery();
 
-        if ($this->model != null) {
-            $stmt = null;
+        // Hydratation du modèle si nécessaire
+        if ($this->model !== null) {
             $result = $this->hydrateModel($result);
         }
 
-
-        $stmt = null;
+        // Mise en cache si activé
         if ($this->cache) {
-            File::put(Orm::getConfig('db.cache.path') . md5($this->cacheParams['id'])
-                . $this->cachePrefix, serialize($result));
+            $this->storeInCache($result);
         }
+
+        return $result;
+    }
+
+    /**
+     * Vérifie si le cache doit être utilisé
+     * 
+     * @return bool
+     */
+    private function shouldUseCache(): bool
+    {
+        return $this->cache && File::hasAndIsExpired(
+            $this->getCachePath(),
+            $this->cacheParams['ttl']
+        );
+    }
+
+    /**
+     * Récupère les données depuis le cache
+     * 
+     * @return array
+     */
+    private function getFromCache(): array
+    {
+        return unserialize(File::read($this->getCachePath()));
+    }
+
+    /**
+     * Stocke les données dans le cache
+     * 
+     * @param array $data Données à mettre en cache
+     * @return void
+     */
+    private function storeInCache(array $data): void
+    {
+        File::put($this->getCachePath(), serialize($data));
+    }
+
+    /**
+     * Retourne le chemin du fichier de cache
+     * 
+     * @return string
+     */
+    private function getCachePath(): string
+    {
+        return Orm::getConfig('db.cache.path') 
+            . md5($this->cacheParams['id']) 
+            . $this->cachePrefix;
+    }
+
+    /**
+     * Exécute la requête SQL et retourne les résultats
+     * 
+     * @return array
+     */
+    private function executeQuery(): array
+    {
+        $stmt = $this->db->prepare($this->getSql());
+        $bindParams = $this->getBindParams();
+        
+        if (count($bindParams) > 0) {
+            $stmt->execute($bindParams);
+        } else {
+            $stmt->execute();
+        }
+
+        $result = $stmt->fetchAll();
+        $stmt = null;
+
         return $result;
     }
 
@@ -763,52 +1205,108 @@ class Builder
     }
 
     /**
-     * Hydrate le model spécifié dans Builder::init($model);
-     *
-     * @param $data
-     * @return array
+     * Hydrate le modèle avec les données de la base de données
+     * 
+     * @param array $data Données à hydrater
+     * @return array Collection d'objets hydratés
+     * @throws \InvalidArgumentException Si le modèle n'est pas défini
+     * @throws \RuntimeException Si la classe du modèle n'existe pas
      */
-    private function hydrateModel($data): array
+    private function hydrateModel(array $data): array
     {
-        $params = [];
-        $collect = [];
-        //------------------------ EAGER LOADIND
-        if (!empty($this->with)) {
-            $params['results'] = $data;
-            $params['with'] = $this->with;
-            $collect = (new $this->model())->loadRelationsByEagerLoading($params);
+        if ($this->model === null) {
+            throw new \InvalidArgumentException('Le modèle doit être défini avant l\'hydratation');
         }
-        //--------------------------
+
+        if (!class_exists($this->model)) {
+            throw new \RuntimeException(sprintf('La classe du modèle "%s" n\'existe pas', $this->model));
+        }
+
         $result = [];
+        $eagerLoadedRelations = $this->loadEagerRelations($data);
+
         foreach ($data as $dbColumn) {
-            $entity = new $this->model();
-            foreach ($dbColumn as $column => $property) {
-                $entity->$column = $property;
-            }
+            $entity = $this->createEntity($dbColumn);
+            
             if (!empty($this->with)) {
-                $entity->getRelationByEagerLoading($collect, $params['with'], $entity);
+                $this->attachEagerRelations($entity, $eagerLoadedRelations);
             }
+            
             $result[] = $entity;
         }
+
         return $result;
     }
+
     /**
-     *
-     *
-     * @param mixed $relations
-     * @return Builder
+     * Crée une nouvelle instance du modèle et l'hydrate avec les données
+     * 
+     * @param array|\stdClass $data Données à hydrater
+     * @return object Instance du modèle hydratée
      */
-    public function with(string|array $relations = null): static
+    private function createEntity(array|\stdClass $data): object
+    {
+        $entity = new $this->model();
+        
+        if ($data instanceof \stdClass) {
+            $data = (array) $data;
+        }
+        
+        foreach ($data as $column => $value) {
+            $entity->$column = $value;
+        }
+        
+        return $entity;
+    }
+
+    /**
+     * Charge les relations avec eager loading
+     * 
+     * @param array $data Données principales
+     * @return array Relations chargées
+     */
+    private function loadEagerRelations(array $data): array
+    {
+        if (empty($this->with)) {
+            return [];
+        }
+
+        $params = [
+            'results' => $data,
+            'with' => $this->with
+        ];
+
+        return (new $this->model())->loadRelationsByEagerLoading($params);
+    }
+
+    /**
+     * Attache les relations eager loaded à l'entité
+     * 
+     * @param object $entity Entité à laquelle attacher les relations
+     * @param array $relations Relations chargées
+     * @return void
+     */
+    private function attachEagerRelations(object $entity, array $relations): void
+    {
+        $entity->getRelationByEagerLoading($relations, $this->with, $entity);
+    }
+
+    /**
+     * Charge des relations avec eager loading
+     * 
+     * @param string|array|null $relations Relations à charger
+     * @return self
+     */
+    public function with(string|array|null $relations = null): static
     {
         if (is_string($relations)) {
             $this->with[] = $relations;
         } else {
-            $this->with = array_unique($relations);
+            $this->with = array_unique($relations ?? []);
         }
         return $this;
     }
 
-    // TODO implements scope a tester
     public function __call($name, $arguments)
     {
         $model = $this->model;

@@ -6,5 +6,5 @@ use Cocoon\Database\Model;
 
 class ArticleTag extends Model
 {
-    protected static $table = 'article_tag';
+    protected static ?string $table = 'article_tag';
 }

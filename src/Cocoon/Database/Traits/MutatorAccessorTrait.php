@@ -6,33 +6,45 @@ namespace Cocoon\Database\Traits;
 use Cocoon\Utilities\Strings;
 
 /**
- * Gestion des Mutators et Accessor
+ * Trait MutatorAccessorTrait
+ * Gère les mutateurs et accesseurs pour les modèles.
+ * Permet de transformer les données lors de leur lecture/écriture.
+ * Les mutateurs sont des méthodes qui transforment les données avant leur stockage.
+ * Les accesseurs sont des méthodes qui transforment les données lors de leur lecture.
+ *
+ * @package Cocoon\Database\Traits
  */
 trait MutatorAccessorTrait
 {
+    /**
+     * Données du modèle.
+     *
+     * @var array<string, mixed>
+     */
+    protected array $data = [];
 
     /**
-     *  Données du model.
+     * Suffixe utilisé pour les méthodes de mutateur et d'accesseur.
      *
-     * @var array
+     * @var string
      */
-    protected $data = [];
-    protected $suffix = 'Model';
+    protected string $suffix = 'Model';
 
     /**
-     * Caching des mutators et accessor;
+     * Cache des mutateurs et accesseurs.
      *
-     * @var array
+     * @var array<string, string>
      */
-    protected static $cachingMutatorAndAccessor = [];
+    protected static array $cachingMutatorAndAccessor = [];
 
     /**
-     * Definit une donnée pour le model
+     * Définit une donnée pour le modèle.
+     * Applique le mutateur si celui-ci existe.
      *
-     * @param string $name
-     * @param mixed $value
+     * @param string $name Nom de la propriété
+     * @param mixed $value Valeur à définir
      */
-    public function setData($name, $value)
+    public function setData(string $name, mixed $value): void
     {
         if ($this->hasMutator($name)) {
             $mutator = static::$cachingMutatorAndAccessor['set_' . $name];
@@ -43,19 +55,20 @@ trait MutatorAccessorTrait
     }
 
     /**
-     * Retourne une donnée du model
+     * Retourne une donnée du modèle.
+     * Applique l'accesseur si celui-ci existe.
      *
-     * @param string $name
-     * @return mixed
+     * @param string $name Nom de la propriété
+     * @return mixed Valeur de la propriété
      * @throws \ReflectionException
      */
-    public function getData($name)
+    public function getData(string $name): mixed
     {
-
         if ($this->hasAccessor($name)) {
             $accessor = static::$cachingMutatorAndAccessor['get_' . $name];
             return $this->$accessor($this->data[$name]);
         }
+
         if ($this->isDateTime($name)) {
             return date('Y-m-d H:i:s', strtotime($this->data[$name]));
         }
@@ -67,15 +80,17 @@ trait MutatorAccessorTrait
         if (isset($this->relations()[$name])) {
             return $this->relations()[$name]->getCollection();
         }
+
+        return null;
     }
 
     /**
-     * Détermine si le champ est de type date
+     * Détermine si le champ est de type date.
      *
-     * @param string $key
-     * @return bool
+     * @param string $key Nom du champ
+     * @return bool True si le champ est une date
      */
-    protected function isDateTime($key)
+    protected function isDateTime(string $key): bool
     {
         $defaults = ['created_at', 'updated_at'];
         $fields_mutator = array_unique(array_merge($this->dates, $defaults));
@@ -83,49 +98,53 @@ trait MutatorAccessorTrait
     }
 
     /**
-     * Détermine si un mutator existe
+     * Détermine si un mutateur existe pour la propriété donnée.
      *
-     * @param string $name
-     * @return bool
+     * @param string $name Nom de la propriété
+     * @return bool True si un mutateur existe
      */
-    public function hasMutator($name)
+    public function hasMutator(string $name): bool
     {
-        if (method_exists($this, 'set' . Strings::camelize($name) . $this->suffix)) {
-            static::$cachingMutatorAndAccessor['set_' . $name] = 'set' . Strings::camelize($name) . $this->suffix;
+        $mutatorName = 'set' . Strings::camelize($name) . $this->suffix;
+        if (method_exists($this, $mutatorName)) {
+            static::$cachingMutatorAndAccessor['set_' . $name] = $mutatorName;
             return true;
         }
         return false;
     }
 
     /**
-     * Détermine si un accessor existe
-     * @param string $name
-     * @return bool
+     * Détermine si un accesseur existe pour la propriété donnée.
+     *
+     * @param string $name Nom de la propriété
+     * @return bool True si un accesseur existe
      */
-    public function hasAccessor($name)
+    public function hasAccessor(string $name): bool
     {
-        if (method_exists($this, 'get' . Strings::camelize($name) . $this->suffix)) {
-            static::$cachingMutatorAndAccessor['get_' . $name] = 'get' . Strings::camelize($name) . $this->suffix;
+        $accessorName = 'get' . Strings::camelize($name) . $this->suffix;
+        if (method_exists($this, $accessorName)) {
+            static::$cachingMutatorAndAccessor['get_' . $name] = $accessorName;
             return true;
         }
         return false;
     }
 
     /**
-     * Determine le suffixe pour les mutators et accessors
+     * Définit le suffixe pour les mutateurs et accesseurs.
      *
-     * @param string $suffix
+     * @param string $suffix Nouveau suffixe
      */
-    public function setSuffixMutator($suffix)
+    public function setSuffixMutator(string $suffix): void
     {
         $this->suffix = $suffix;
     }
 
     /**
-     * retounne les donnés d'une ligne de l'entity
-     * @return array
+     * Retourne toutes les données de l'entité.
+     *
+     * @return array<string, mixed> Données de l'entité
      */
-    public function getEntityData() :array
+    public function getEntityData(): array
     {
         return $this->data;
     }

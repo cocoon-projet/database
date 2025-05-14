@@ -6,5 +6,5 @@ use Cocoon\Database\Model;
 
 class Tag extends Model
 {
-    protected static $table = 'tags';
+    protected static ?string $table = 'tags';
 }

@@ -2,7 +2,7 @@
 namespace Tests\Models;
 class User extends \Cocoon\Database\Model
 {
-    protected static $table = 'users';
+    protected static ?string $table = 'users';
 
     public function  relations()
     {

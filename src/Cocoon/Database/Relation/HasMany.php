@@ -9,92 +9,152 @@ use Cocoon\Utilities\Strings;
 use Cocoon\Collection\Collection;
 use Cocoon\Pager\PaginatorConfig;
 use Cocoon\Database\Query\Builder;
+use Cocoon\Database\Model;
 
+/**
+ * Classe HasMany
+ * Gère la relation "a plusieurs" entre deux modèles
+ */
 class HasMany
 {
-    private $query;
-    private $model;
-    private $related;
-    private $foreignKey;
-    private $localKey;
-    private $eagerParams = [];
-    private $keys = [];
-    private $paginationRelated = false;
-    private $paginationRelatedOptions = [];
-    // TODO faire une fonction where
-    public function __construct($model, $related, $foreignKey, $localKey)
-    {
+    private Builder $query;
+    private Model $model;
+    private string $related;
+    private string $foreignKey;
+    private string $localKey;
+    private array $eagerParams = [];
+    private array $keys = [];
+    private bool $paginationRelated = false;
+    private array $paginationRelatedOptions = [];
+
+    /**
+     * Constructeur de la relation HasMany
+     *
+     * @param Model $model Le modèle parent
+     * @param string $related Le nom de la classe du modèle lié
+     * @param string|null $foreignKey La clé étrangère
+     * @param string|null $localKey La clé locale
+     */
+    public function __construct(
+        Model $model,
+        string $related,
+        ?string $foreignKey = null,
+        ?string $localKey = null
+    ) {
         $this->query = Builder::init()->from($related::getTableName());
         $this->model = $model;
         $this->related = $related;
         $this->foreignKey = $foreignKey ?? Strings::singular($model::getTableName()) . '_id';
-        ;
         $this->localKey = $localKey ?? $model->getPrimaryKey();
     }
 
-    protected function lazyLoadingConditions()
+    /**
+     * Définit les conditions pour le chargement paresseux
+     */
+    protected function lazyLoadingConditions(): void
     {
         $local = $this->localKey;
         $this->query->where($this->foreignKey . ' = ?', $this->model->$local);
     }
 
-    public function setEagerParams($params)
+    /**
+     * Définit les paramètres pour le chargement avide
+     *
+     * @param array $params Les paramètres de chargement avide
+     * @return self
+     */
+    public function setEagerParams(array $params): self
     {
         $this->eagerParams = $params;
         return $this;
     }
 
-    protected function eagerLoadingConditions()
+    /**
+     * Définit les conditions pour le chargement avide
+     */
+    protected function eagerLoadingConditions(): void
     {
         $this->query->in($this->foreignKey, $this->getKeys());
     }
 
-    private function getKeys()
+    /**
+     * Récupère les clés uniques des résultats
+     *
+     * @return array
+     */
+    private function getKeys(): array
     {
         $local = $this->localKey;
+        $this->keys = [];
+        
         array_filter($this->eagerParams['results'], function ($getId) use ($local) {
             $this->keys[] = $getId->$local;
         });
+        
         return array_unique($this->keys);
     }
 
-    public function select($fields)
+    /**
+     * Sélectionne des champs spécifiques
+     *
+     * @param string $fields Les champs à sélectionner
+     * @return self
+     */
+    public function select(string $fields): self
     {
         $value = $this->foreignKey . ',' . $fields;
         $this->query->select($value);
         return $this;
     }
 
-    public function paginate($perpage = 1, $mode = null)
+    /**
+     * Active la pagination pour les relations
+     *
+     * @param int $perpage Nombre d'éléments par page
+     * @param string|null $mode Mode de style de pagination
+     * @return self
+     */
+    public function paginate(int $perpage = 1, ?string $mode = null): self
     {
         $this->paginationRelated = true;
-        if ($mode != null) {
-            $this->paginationRelatedOptions['styling'] = $mode;
-        } else {
-            $this->paginationRelatedOptions['styling'] = 'all';
-        }
+        $this->paginationRelatedOptions = [
+            'styling' => $mode ?? 'all',
+            'perpage' => $perpage
+        ];
         
-        $this->paginationRelatedOptions['perpage'] = $perpage;
         return $this;
     }
 
-    public function getCollection()
+    /**
+     * Récupère la collection de résultats
+     *
+     * @return Collection|Paginator
+     * @throws \Exception Si la pagination est activée en lazy loading
+     */
+    public function getCollection(): Collection|Paginator
     {
         if (isset($this->eagerParams['with'])) {
             $this->eagerLoadingConditions();
             $result = $this->query->get();
+            return new Collection($result);
         } else {
             if ($this->paginationRelated) {
                 throw new \Exception('La fonctionnalité de pagination n\'est pas disponible en lazy loading');
             }
             $this->query->setModel($this->related);
             $this->lazyLoadingConditions();
-            $result = new Collection($this->query->get());
+            return new Collection($this->query->get());
         }
-        return $result;
     }
 
-    public function getByEagerloading($collection, $entity)
+    /**
+     * Récupère les résultats par chargement avide
+     *
+     * @param Collection $collection La collection de résultats
+     * @param Model $entity L'entité parente
+     * @return Collection|Paginator
+     */
+    public function getByEagerloading(Collection $collection, Model $entity): Collection|Paginator
     {
         $result = [];
         foreach ($collection as $collect) {
@@ -104,21 +164,41 @@ class HasMany
                 $result[] = $this->hydrate($collect, $this->related);
             }
         }
+
         if ($this->paginationRelated) {
-            $array = $result;
-            $items = ($count = count($array))
-                ? $result
-                : new Collection([]);
-            $config = new PaginatorConfig($items, $count);
-            $config->setPerPage($this->paginationRelatedOptions['perpage']);
-            $config->setStyling($this->paginationRelatedOptions['styling']);
-            $config->setCssFramework(Orm::getConfig('pagination.renderer'));
-            return new Paginator($config);
+            return $this->createPaginator($result);
         }
+
         return new Collection($result);
     }
 
-    protected function hydrate($data, $class)
+    /**
+     * Crée une instance de Paginator
+     *
+     * @param array $result Les résultats à paginer
+     * @return Paginator
+     */
+    private function createPaginator(array $result): Paginator
+    {
+        $count = count($result);
+        $items = $count ? $result : new Collection([]);
+        
+        $config = new PaginatorConfig($items, $count);
+        $config->setPerPage($this->paginationRelatedOptions['perpage']);
+        $config->setStyling($this->paginationRelatedOptions['styling']);
+        $config->setCssFramework(Orm::getConfig('pagination.renderer'));
+        
+        return new Paginator($config);
+    }
+
+    /**
+     * Hydrate un objet avec les données
+     *
+     * @param object $data Les données à hydrater
+     * @param string $class La classe à instancier
+     * @return Model
+     */
+    protected function hydrate(object $data, string $class): Model
     {
         $entity = new $class();
         foreach ($data as $key => $value) {

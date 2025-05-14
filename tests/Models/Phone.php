@@ -4,7 +4,7 @@ namespace Tests\Models;
 
 class Phone extends \Cocoon\Database\Model
 {
-    protected static $table = 'phones';
+    protected static ?string $table = 'phones';
 
     public function relations()
     {
