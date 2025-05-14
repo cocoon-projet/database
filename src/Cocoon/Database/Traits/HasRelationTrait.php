@@ -70,8 +70,12 @@ trait HasRelationTrait
      * @param string|null $keyTwo La clé étrangère pour le modèle lié
      * @return BelongsToMany
      */
-    public function belongsToMany(string $related, string $refModel, ?string $keyOne = null, ?string $keyTwo = null): BelongsToMany
-    {
+    public function belongsToMany(
+        string $related,
+        string $refModel,
+        ?string $keyOne = null,
+        ?string $keyTwo = null
+    ): BelongsToMany {
         return new BelongsToMany($this, $related, $refModel, $keyOne, $keyTwo);
     }
 

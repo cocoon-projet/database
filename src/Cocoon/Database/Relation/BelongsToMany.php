@@ -51,8 +51,13 @@ class BelongsToMany
      * @param string|null $keyOne La clé étrangère pour le modèle parent
      * @param string|null $keyTwo La clé étrangère pour le modèle lié
      */
-    public function __construct(Model $model, string $related, string $refModel, ?string $keyOne = null, ?string $keyTwo = null)
-    {
+    public function __construct(
+        Model $model,
+        string $related,
+        string $refModel,
+        ?string $keyOne = null,
+        ?string $keyTwo = null
+    ) {
         $this->query = Builder::init()->from($related::getTableName());
         $this->model = $model;
         $refModelTable = $refModel::getTableName();
@@ -79,8 +84,10 @@ class BelongsToMany
     protected function lazyLoadingConditions(): void
     {
         $relatedRefTable = $this->related::getTableName();
-        $this->query->select($this->keyOne . ' AS ' . Strings::singular($this->model::getTableName()) . '_id' . ',' . $relatedRefTable . '.*');
-        $this->query->innerJoin($this->refModel::getTableName(), $this->keyTwo . ' = ' . $relatedRefTable . '.id');
+        $this->query->select($this->keyOne . ' AS ' .
+            Strings::singular($this->model::getTableName()) . '_id' . ',' . $relatedRefTable . '.*');
+        $this->query->innerJoin($this->refModel::getTableName(), $this->keyTwo .
+        ' = ' . $relatedRefTable . '.id');
         $id = $this->model->getPrimaryKey();
         $this->query->where($this->keyOne . ' = ?', $this->model->$id);
     }
@@ -104,8 +111,10 @@ class BelongsToMany
     protected function eagerLoadingConditions(): void
     {
         $relatedRefTable = $this->related::getTableName();
-        $this->query->select($this->keyOne . ' AS ' . Strings::singular($this->model::getTableName()) . '_id' . ',' . $relatedRefTable . '.*');
-        $this->query->innerJoin($this->refModel::getTableName(), $this->keyTwo . ' = ' . $relatedRefTable . '.id');
+        $this->query->select($this->keyOne . ' AS ' .
+            Strings::singular($this->model::getTableName()) . '_id' . ',' . $relatedRefTable . '.*');
+        $this->query->innerJoin($this->refModel::getTableName(), $this->keyTwo . ' = ' .
+            $relatedRefTable . '.id');
         $this->query->in($this->keyOne, $this->getKeys());
     }
 

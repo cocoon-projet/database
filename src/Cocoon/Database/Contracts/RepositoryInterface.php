@@ -19,7 +19,12 @@ interface RepositoryInterface
      * @param string $order Direction du tri (asc|desc)
      * @return array<mixed>|object
      */
-    public function all(string $columns = '', ?int $paginate = null, string $orderByField = 'id', string $order = 'desc'): array|object;
+    public function all(
+        string $columns = '',
+        ?int $paginate = null,
+        string $orderByField = 'id',
+        string $order = 'desc'
+    ): array|object;
 
     /**
      * Recherche un enregistrement par son ID

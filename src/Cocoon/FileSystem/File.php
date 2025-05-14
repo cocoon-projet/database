@@ -18,7 +18,9 @@ class File
     {
         if (self::$instance === null) {
             if (empty(self::$basePath)) {
-                throw new \RuntimeException('FileSystem not initialized. Call File::initialize() first with a base path.');
+                throw new \RuntimeException(
+                    'FileSystem not initialized. Call File::initialize() first with a base path.'
+                );
             }
             self::$instance = new FileSystem(self::$basePath);
         }

@@ -40,7 +40,7 @@ class FileSystem extends BaseFileSystem
 
     /**
      * Écrit du contenu dans un fichier
-     * 
+     *
      * @param string $path Chemin relatif du fichier (ex: cache/file.php)
      * @param string $contents Contenu à écrire
      * @return void
@@ -53,7 +53,7 @@ class FileSystem extends BaseFileSystem
 
     /**
      * Lit le contenu d'un fichier
-     * 
+     *
      * @param string $path Chemin relatif du fichier (ex: cache/file.php)
      * @return string Contenu du fichier
      * @throws FilesystemException

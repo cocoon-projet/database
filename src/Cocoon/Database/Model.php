@@ -234,9 +234,9 @@ abstract class Model implements ArrayAccess
      * @return array|object Résultat de la requête
      */
     public static function findAll(
-        string $fields = '', 
-        int|array|null $paginate = null, 
-        string $orderByField = 'id', 
+        string $fields = '',
+        int|array|null $paginate = null,
+        string $orderByField = 'id',
         string $order = 'desc'
     ): array|object {
         $query = Builder::init(get_called_class())

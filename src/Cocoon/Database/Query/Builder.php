@@ -12,7 +12,7 @@ use Cocoon\Pager\PaginatorConfig;
 
 /**
  * Builder de requêtes SQL
- * 
+ *
  * Cette classe permet de construire et d'exécuter des requêtes SQL de manière fluide et sécurisée.
  * Elle supporte les opérations CRUD (Create, Read, Update, Delete) ainsi que des fonctionnalités
  * avancées comme la pagination, le cache et l'eager loading des relations.
@@ -23,238 +23,238 @@ class Builder
 {
     /**
      * Instance de la connexion à la base de données
-     * 
+     *
      * @var \PDO
      */
     protected $db;
 
     /**
      * Instance unique du Builder (pattern Singleton)
-     * 
+     *
      * @var self|null
      */
     protected static $instance = null;
 
     /**
      * Requête SQL générée
-     * 
+     *
      * @var string
      */
     protected $sql = '';
 
     /**
      * Historique des requêtes SQL exécutées
-     * 
+     *
      * @var array
      */
     public static $SQLS = [];
 
     /**
      * Nom de la table principale
-     * 
+     *
      * @var string
      */
     private $tableName;
 
     /**
      * Classe du modèle associé
-     * 
+     *
      * @var string|null
      */
     protected $model = null;
 
     /**
      * Champs par défaut pour les requêtes SELECT
-     * 
+     *
      * @var string
      */
     protected $defaultFields = '*';
 
     /**
      * Champs spécifiés pour la requête
-     * 
+     *
      * @var string|null
      */
     protected $setFields;
 
     /**
      * Tables additionnelles pour les jointures
-     * 
+     *
      * @var string|null
      */
     protected $addTable;
 
     /**
      * Relations à charger avec eager loading
-     * 
+     *
      * @var array
      */
     protected $with = [];
 
     /**
      * Alias de la table principale
-     * 
+     *
      * @var string
      */
     protected $alias = '';
 
     /**
      * Conditions WHERE
-     * 
+     *
      * @var array
      */
     protected $where = [];
 
     /**
      * Paramètres de liaison pour la requête
-     * 
+     *
      * @var array
      */
     protected $bindParams = [];
 
     /**
      * Paramètres de liaison pour les conditions WHERE
-     * 
+     *
      * @var array
      */
     protected $bindParamsWhere = [];
 
     /**
      * Champs à mettre à jour (UPDATE)
-     * 
+     *
      * @var array
      */
     protected $set = [];
 
     /**
      * Données à insérer (INSERT)
-     * 
+     *
      * @var array
      */
     protected $preparDataInsert = [];
 
     /**
      * Colonnes pour l'insertion
-     * 
+     *
      * @var array
      */
     protected $dataInsert;
 
     /**
      * Limite de résultats
-     * 
+     *
      * @var string
      */
     protected $limit = '';
 
     /**
      * Offset pour la pagination
-     * 
+     *
      * @var string
      */
     protected $offset = '';
 
     /**
      * Clause GROUP BY
-     * 
+     *
      * @var string|null
      */
     protected $groupBy = null;
 
     /**
      * Clause HAVING
-     * 
+     *
      * @var string|null
      */
     protected $having = null;
 
     /**
      * Clause BETWEEN
-     * 
+     *
      * @var string
      */
     protected $between = '';
 
     /**
      * Clause ORDER BY
-     * 
+     *
      * @var string|null
      */
     protected $order = null;
 
     /**
      * Clause DISTINCT
-     * 
+     *
      * @var string
      */
     protected $distinct = '';
 
     /**
      * Jointures
-     * 
+     *
      * @var array
      */
     protected $join = [];
 
     /**
      * Conditions ON pour les jointures
-     * 
+     *
      * @var array
      */
     protected $on = [];
 
     /**
      * Nombre d'éléments par page pour la pagination
-     * 
+     *
      * @var int
      */
     protected $perpage = 10;
 
     /**
      * Colonnes sélectionnées
-     * 
+     *
      * @var array
      */
     protected $columns = [];
 
     /**
      * Mode d'affichage des liens de pagination
-     * 
+     *
      * @var string
      */
     protected $pagerLinksMode = 'all';
 
     /**
      * Type de requête en cours
-     * 
+     *
      * @var int
      */
     protected $type = self::SELECT;
 
     /**
      * IDs pour les requêtes IN
-     * 
+     *
      * @var array
      */
     protected $ids = [];
 
     /**
      * État du cache
-     * 
+     *
      * @var bool
      */
     protected $cache = false;
 
     /**
      * Paramètres du cache
-     * 
+     *
      * @var array
      */
     protected $cacheParams = [];
 
     /**
      * Préfixe pour les fichiers de cache
-     * 
+     *
      * @var string
      */
     protected $cachePrefix = '_database_cache';
@@ -276,7 +276,7 @@ class Builder
 
     /**
      * Active le cache pour la requête en cours
-     * 
+     *
      * @param string $id Identifiant unique pour le cache
      * @param int $ttl Durée de vie du cache en secondes (par défaut: 3600)
      * @return self
@@ -292,7 +292,7 @@ class Builder
 
     /**
      * Spécifie la table principale pour la requête
-     * 
+     *
      * @param string $table Nom de la table
      * @return self
      */
@@ -304,7 +304,7 @@ class Builder
 
     /**
      * Définit le modèle associé à la requête
-     * 
+     *
      * @param string $model Nom de la classe du modèle
      * @return self
      */
@@ -316,7 +316,7 @@ class Builder
 
     /**
      * Spécifie la table pour une insertion
-     * 
+     *
      * @param string $table Nom de la table
      * @return self
      */
@@ -328,7 +328,7 @@ class Builder
 
     /**
      * Ajoute une table pour une jointure
-     * 
+     *
      * @param string $table Nom de la table à ajouter
      * @return self
      */
@@ -340,7 +340,7 @@ class Builder
 
     /**
      * Insère des données dans la table
-     * 
+     *
      * @param array $data Données à insérer [colonne => valeur]
      * @return int|string ID de la dernière insertion
      */
@@ -364,7 +364,7 @@ class Builder
 
     /**
      * Retourne l'ID de la dernière insertion
-     * 
+     *
      * @return int|string
      */
     public function lastInsertId(): int|string
@@ -374,7 +374,7 @@ class Builder
 
     /**
      * Met à jour des données dans la table
-     * 
+     *
      * @param array $data Données à mettre à jour [colonne => valeur]
      * @return void
      */
@@ -395,7 +395,7 @@ class Builder
 
     /**
      * Supprime des enregistrements de la table
-     * 
+     *
      * @return void
      */
     public function delete(): void
@@ -411,7 +411,7 @@ class Builder
 
     /**
      * Initialise une nouvelle instance du Builder
-     * 
+     *
      * @param string|null $model Nom de la classe du modèle
      * @return self|null
      */
@@ -426,7 +426,7 @@ class Builder
 
     /**
      * Sélectionne des champs spécifiques
-     * 
+     *
      * @param string|array $fields Champs à sélectionner
      * @return self
      */
@@ -448,7 +448,7 @@ class Builder
 
     /**
      * Retourne le nombre total d'enregistrements
-     * 
+     *
      * @return int
      */
     public function count(): int
@@ -731,7 +731,7 @@ class Builder
 
     /**
      * Génère la clause LIMIT pour la requête SQL
-     * 
+     *
      * @return string La clause LIMIT formatée
      * @throws \InvalidArgumentException Si les valeurs de limite ou d'offset sont invalides
      */
@@ -869,7 +869,7 @@ class Builder
 
     /**
      * Effectue une jointure LEFT JOIN
-     * 
+     *
      * @param string $table Nom de la table à joindre
      * @param string|null $on Condition de jointure
      * @return self
@@ -883,7 +883,7 @@ class Builder
 
     /**
      * Effectue une jointure INNER JOIN
-     * 
+     *
      * @param string $table Nom de la table à joindre
      * @param string|null $on Condition de jointure
      * @return self
@@ -903,7 +903,7 @@ class Builder
 
     /**
      * Récupère les éléments pour la pagination
-     * 
+     *
      * @return array{items: Collection|self|array, count: int} Tableau contenant les éléments et leur nombre
      */
     private function getItemsForPagination(): array
@@ -920,7 +920,7 @@ class Builder
 
     /**
      * Crée la configuration du paginateur
-     * 
+     *
      * @param array{items: Collection|self|array, count: int} $data Données de pagination
      * @return PaginatorConfig Configuration du paginateur
      */
@@ -936,7 +936,7 @@ class Builder
 
     /**
      * Pagine les résultats de la requête
-     * 
+     *
      * @param int|null $perpage Nombre d'éléments par page
      * @param string|null $mode Mode d'affichage des liens de pagination ('basic', 'all', etc.)
      * @return Paginator Instance du paginateur
@@ -954,7 +954,7 @@ class Builder
 
     /**
      * Valide les paramètres de pagination
-     * 
+     *
      * @param int|null $perpage Nombre d'éléments par page
      * @param string|null $mode Mode d'affichage
      * @throws \InvalidArgumentException Si les paramètres sont invalides
@@ -975,12 +975,12 @@ class Builder
 
     /**
      * Génère la requête SQL en fonction du type d'opération
-     * 
+     *
      * @return string La requête SQL générée
      */
-    public function getSql(): string 
+    public function getSql(): string
     {
-        $sql = match($this->type) {
+        $sql = match ($this->type) {
             0 => $this->buildInsertSql(),
             1 => $this->buildDeleteSql(),
             2 => $this->buildUpdateSql(),
@@ -994,34 +994,34 @@ class Builder
 
     /**
      * Construit la requête SQL pour une insertion
-     * 
+     *
      * @return string
      */
-    private function buildInsertSql(): string 
+    private function buildInsertSql(): string
     {
-        return "INSERT INTO " . $this->getTableName() 
+        return "INSERT INTO " . $this->getTableName()
             . '(' . implode(',', $this->dataInsert) . ')'
             . ' VALUES (' . implode(', ', $this->preparDataInsert) . ')';
     }
 
     /**
      * Construit la requête SQL pour une suppression
-     * 
+     *
      * @return string
      */
-    private function buildDeleteSql(): string 
+    private function buildDeleteSql(): string
     {
         $where = $this->getWhere();
-        return 'DELETE FROM ' . $this->getTableName() 
+        return 'DELETE FROM ' . $this->getTableName()
             . (!empty($where) ? ' WHERE ' . $where : '');
     }
 
     /**
      * Construit la requête SQL pour une mise à jour
-     * 
+     *
      * @return string
      */
-    private function buildUpdateSql(): string 
+    private function buildUpdateSql(): string
     {
         $where = $this->getWhere();
         $set = $this->getSet();
@@ -1033,10 +1033,10 @@ class Builder
 
     /**
      * Construit la requête SQL pour une sélection
-     * 
+     *
      * @return string
      */
-    private function buildSelectSql(): string 
+    private function buildSelectSql(): string
     {
         $where = $this->getWhere();
         $groupBy = $this->getGroupBy();
@@ -1045,9 +1045,9 @@ class Builder
         $limit = $this->getLimit();
 
         return 'SELECT ' . $this->getSelect()
-            . ' FROM ' . $this->getTableName() 
+            . ' FROM ' . $this->getTableName()
             . $this->getAlias()
-            . $this->getAddTable() 
+            . $this->getAddTable()
             . $this->getJoin()
             . (!empty($where) ? ' WHERE ' . $where : '')
             . (!empty($groupBy) ? ' GROUP BY ' . $groupBy : '')
@@ -1058,7 +1058,7 @@ class Builder
 
     /**
      * Retourne les premiers enregistrements
-     * 
+     *
      * @param int $first Nombre d'enregistrements à retourner
      * @return array|object Résultat de la requête
      */
@@ -1070,7 +1070,7 @@ class Builder
 
     /**
      * Retourne les derniers enregistrements
-     * 
+     *
      * @param int $last Nombre d'enregistrements à retourner
      * @return array|object Résultat de la requête
      */
@@ -1082,7 +1082,7 @@ class Builder
 
     /**
      * Récupère une liste de valeurs indexée par une clé
-     * 
+     *
      * @param string $field Champ à récupérer
      * @param string $id Clé d'indexation (par défaut: 'id')
      * @return array Liste des valeurs indexée
@@ -1095,7 +1095,7 @@ class Builder
 
     /**
      * Exécute la requête SQL et retourne les résultats
-     * 
+     *
      * @return array Résultats de la requête
      */
     public function get(): array
@@ -1123,7 +1123,7 @@ class Builder
 
     /**
      * Vérifie si le cache doit être utilisé
-     * 
+     *
      * @return bool
      */
     private function shouldUseCache(): bool
@@ -1136,7 +1136,7 @@ class Builder
 
     /**
      * Récupère les données depuis le cache
-     * 
+     *
      * @return array
      */
     private function getFromCache(): array
@@ -1146,7 +1146,7 @@ class Builder
 
     /**
      * Stocke les données dans le cache
-     * 
+     *
      * @param array $data Données à mettre en cache
      * @return void
      */
@@ -1157,19 +1157,19 @@ class Builder
 
     /**
      * Retourne le chemin du fichier de cache
-     * 
+     *
      * @return string
      */
     private function getCachePath(): string
     {
-        return Orm::getConfig('db.cache.path') 
-            . md5($this->cacheParams['id']) 
+        return Orm::getConfig('db.cache.path')
+            . md5($this->cacheParams['id'])
             . $this->cachePrefix;
     }
 
     /**
      * Exécute la requête SQL et retourne les résultats
-     * 
+     *
      * @return array
      */
     private function executeQuery(): array
@@ -1206,7 +1206,7 @@ class Builder
 
     /**
      * Hydrate le modèle avec les données de la base de données
-     * 
+     *
      * @param array $data Données à hydrater
      * @return array Collection d'objets hydratés
      * @throws \InvalidArgumentException Si le modèle n'est pas défini
@@ -1240,7 +1240,7 @@ class Builder
 
     /**
      * Crée une nouvelle instance du modèle et l'hydrate avec les données
-     * 
+     *
      * @param array|\stdClass $data Données à hydrater
      * @return object Instance du modèle hydratée
      */
@@ -1261,7 +1261,7 @@ class Builder
 
     /**
      * Charge les relations avec eager loading
-     * 
+     *
      * @param array $data Données principales
      * @return array Relations chargées
      */
@@ -1281,7 +1281,7 @@ class Builder
 
     /**
      * Attache les relations eager loaded à l'entité
-     * 
+     *
      * @param object $entity Entité à laquelle attacher les relations
      * @param array $relations Relations chargées
      * @return void
@@ -1293,7 +1293,7 @@ class Builder
 
     /**
      * Charge des relations avec eager loading
-     * 
+     *
      * @param string|array|null $relations Relations à charger
      * @return self
      */
