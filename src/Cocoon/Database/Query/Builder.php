@@ -9,6 +9,9 @@ use Cocoon\Pager\Paginator;
 use Cocoon\Database\Query\Cast;
 use Cocoon\Collection\Collection;
 use Cocoon\Pager\PaginatorConfig;
+use Cocoon\Database\Exception\QueryException;
+use Cocoon\Database\Exception\ModelException;
+use Cocoon\Database\Exception\CacheException;
 
 /**
  * Builder de requêtes SQL
@@ -733,7 +736,7 @@ class Builder
      * Génère la clause LIMIT pour la requête SQL
      *
      * @return string La clause LIMIT formatée
-     * @throws \InvalidArgumentException Si les valeurs de limite ou d'offset sont invalides
+     * @throws QueryException Si les valeurs de limite ou d'offset sont invalides
      */
     protected function getLimit(): string
     {
@@ -741,7 +744,12 @@ class Builder
         $offset = $this->offset ? (int)$this->offset : 0;
 
         if ($limit < 0 || $offset < 0) {
-            throw new \InvalidArgumentException('Les valeurs de limite et d\'offset doivent être positives');
+            throw new QueryException(
+                'Les valeurs de limite et d\'offset doivent être positives',
+                QueryException::INVALID_PARAMETER,
+                null,
+                ['limit' => $limit, 'offset' => $offset]
+            );
         }
 
         return $this->db->limit($limit, $offset);
@@ -957,13 +965,18 @@ class Builder
      *
      * @param int|null $perpage Nombre d'éléments par page
      * @param string|null $mode Mode d'affichage
-     * @throws \InvalidArgumentException Si les paramètres sont invalides
+     * @throws QueryException Si les paramètres sont invalides
      */
     private function validatePaginationParameters(?int $perpage, ?string $mode): void
     {
         if ($perpage !== null) {
             if ($perpage <= 0) {
-                throw new \InvalidArgumentException('Le nombre d\'éléments par page doit être supérieur à 0');
+                throw new QueryException(
+                    'Le nombre d\'éléments par page doit être supérieur à 0',
+                    QueryException::INVALID_PARAMETER,
+                    null,
+                    ['perpage' => $perpage]
+                );
             }
             $this->perpage = $perpage;
         }
@@ -985,7 +998,12 @@ class Builder
             1 => $this->buildDeleteSql(),
             2 => $this->buildUpdateSql(),
             3 => $this->buildSelectSql(),
-            default => throw new \InvalidArgumentException('Type de requête invalide')
+            default => throw new QueryException(
+                "Type de requête invalide: {$this->type}",
+                QueryException::INVALID_PARAMETER,
+                null,
+                ['type' => $this->type]
+            )
         };
 
         static::$SQLS[] = trim($sql);
@@ -1138,10 +1156,38 @@ class Builder
      * Récupère les données depuis le cache
      *
      * @return array
+     * @throws CacheException Si le fichier de cache est inaccessible ou corrompu
      */
     private function getFromCache(): array
     {
-        return unserialize(File::read($this->getCachePath()));
+        $cachePath = $this->getCachePath();
+        
+        if (!File::has($cachePath)) {
+            throw CacheException::fileNotAccessible(
+                $cachePath, 
+                "Le fichier de cache n'existe pas"
+            );
+        }
+        
+        $cacheContent = File::read($cachePath);
+        
+        if ($cacheContent === false) {
+            throw CacheException::readError(
+                $cachePath, 
+                "Impossible de lire le contenu du fichier de cache"
+            );
+        }
+        
+        $data = @unserialize($cacheContent);
+        
+        if ($data === false) {
+            throw CacheException::readError(
+                $cachePath, 
+                "Le contenu du fichier de cache est corrompu"
+            );
+        }
+        
+        return $data;
     }
 
     /**
@@ -1149,10 +1195,32 @@ class Builder
      *
      * @param array $data Données à mettre en cache
      * @return void
+     * @throws CacheException Si l'écriture dans le cache échoue
      */
     private function storeInCache(array $data): void
     {
-        File::put($this->getCachePath(), serialize($data));
+        $cachePath = $this->getCachePath();
+        $cacheDir = dirname($cachePath);
+        
+        // Vérifier que le répertoire de cache existe ou le créer
+        if (!is_dir($cacheDir) && !mkdir($cacheDir, 0777, true)) {
+            throw CacheException::directoryNotAccessible(
+                $cacheDir,
+                "Impossible de créer le répertoire de cache"
+            );
+        }
+        
+        // Sérialiser les données et les écrire dans le fichier
+        $serializedData = serialize($data);
+        
+        try {
+            File::put($cachePath, $serializedData);
+        } catch (\Exception $e) {
+            throw CacheException::writeError(
+                $cachePath,
+                $e->getMessage()
+            );
+        }
     }
 
     /**
@@ -1209,17 +1277,25 @@ class Builder
      *
      * @param array $data Données à hydrater
      * @return array Collection d'objets hydratés
-     * @throws \InvalidArgumentException Si le modèle n'est pas défini
-     * @throws \RuntimeException Si la classe du modèle n'existe pas
+     * @throws ModelException Si le modèle n'est pas défini
+     * @throws ModelException Si la classe du modèle n'existe pas
      */
     private function hydrateModel(array $data): array
     {
         if ($this->model === null) {
-            throw new \InvalidArgumentException('Le modèle doit être défini avant l\'hydratation');
+            throw new ModelException(
+                'Le modèle doit être défini avant l\'hydratation',
+                ModelException::PRIMARY_KEY_NOT_DEFINED
+            );
         }
 
         if (!class_exists($this->model)) {
-            throw new \RuntimeException(sprintf('La classe du modèle "%s" n\'existe pas', $this->model));
+            throw new ModelException(
+                sprintf('La classe du modèle "%s" n\'existe pas', $this->model),
+                ModelException::MISSING_TARGET_MODEL,
+                null,
+                ['model_class' => $this->model]
+            );
         }
 
         $result = [];

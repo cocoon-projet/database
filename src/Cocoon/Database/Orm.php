@@ -164,7 +164,7 @@ class Orm
         $name = $name ?? self::$defaultConnection;
         
         if (!isset(self::$connections[$name])) {
-            throw new ConnectionException("La connexion '$name' n'existe pas");
+            throw ConnectionException::connectionNotFound($name);
         }
         
         return self::$connections[$name];
@@ -180,7 +180,7 @@ class Orm
     public static function setDefaultConnection(string $name): void
     {
         if (!isset(self::$connections[$name])) {
-            throw new ConnectionException("La connexion '$name' n'existe pas");
+            throw ConnectionException::connectionNotFound($name);
         }
         
         self::$defaultConnection = $name;
