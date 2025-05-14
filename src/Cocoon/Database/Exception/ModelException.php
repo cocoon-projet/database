@@ -39,6 +39,11 @@ class ModelException extends DatabaseException
     public const PRIMARY_KEY_NOT_DEFINED = 1205;
     
     /**
+     * Code d'erreur pour un modèle cible inexistant
+     */
+    public const MISSING_TARGET_MODEL = 1206;
+    
+    /**
      * Crée une exception pour une méthode inexistante
      *
      * @param string $method Nom de la méthode
