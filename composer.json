@@ -16,9 +16,6 @@
       "App\\": "app/"
     }
   },
-  "bin": [
-    "bin/cocoon"
-  ],
   "require": {
     "php": "^8.0",
     "cocoon-projet/utilities": "^0.0.1",
@@ -41,8 +38,5 @@
   "scripts": {
     "test": ["vendor/bin/phpcbf",
             "vendor/bin/phpcs"]
-  },
-  "config": {
-    "bin-dir": "bin"
   }
 }
