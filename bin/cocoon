@@ -1,0 +1,46 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+/*
+|--------------------------------------------------------------------------
+| Cocoon Database CLI
+|--------------------------------------------------------------------------
+|
+| Point d'entrée de l'interface en ligne de commande de Cocoon Database.
+| Ce script permet d'exécuter des commandes pour gérer les migrations,
+| les modèles, et d'autres aspects de votre application.
+|
+*/
+
+// Détecter l'emplacement de l'autoloader de Composer
+$possibleFiles = [
+    __DIR__ . '/../../../autoload.php',    // Package installé via Composer
+    __DIR__ . '/../vendor/autoload.php',   // Package en développement
+    __DIR__ . '/vendor/autoload.php',      // Package racine
+];
+
+$autoloaderPath = null;
+foreach ($possibleFiles as $file) {
+    if (file_exists($file)) {
+        $autoloaderPath = $file;
+        break;
+    }
+}
+
+if ($autoloaderPath === null) {
+    fwrite(STDERR, 'Erreur: Impossible de trouver l\'autoloader de Composer.' . PHP_EOL);
+    fwrite(STDERR, 'Exécutez "composer install" pour installer les dépendances.' . PHP_EOL);
+    exit(1);
+}
+
+require $autoloaderPath;
+
+// Démarrer l'application
+try {
+    $app = new Cocoon\Database\Console\Application();
+    $app->run();
+} catch (Exception $e) {
+    fwrite(STDERR, 'Erreur: ' . $e->getMessage() . PHP_EOL);
+    exit(1);
+} 

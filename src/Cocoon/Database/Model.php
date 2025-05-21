@@ -65,6 +65,7 @@ abstract class Model implements ArrayAccess
         }
             $this->relations();
             $this->observe();
+            $this->hasDates();
     }
 
     public function __isset($name)
@@ -188,12 +189,13 @@ abstract class Model implements ArrayAccess
      * Enregistre des données dans la table
      *
      * @param array $data
+     * @param int|null $id
      * @return static
      * @throws ModelException
      */
-    public static function create(array $data)
+    public static function create(array $data, $id = null)
     {
-        $model = new static();
+        $model = new static($id);
         foreach ($data as $key => $value) {
             $model->__set($key, $value);
         }
@@ -490,5 +492,25 @@ abstract class Model implements ArrayAccess
     public function relations()
     {
          return [];
+    }
+
+    public function hasDates()
+    {
+        if(!empty($this->dates)) {
+            foreach($this->dates as $date) {
+                if($this->isNew) {
+                    if(str_contains($date, 'created')) {
+                        $this->setData($date, date('Y-m-d H:i:s'));
+                    } else if(str_contains($date, 'updated')) {
+                        $this->setData($date, date('Y-m-d H:i:s'));
+                    }
+                } else {
+                    if(str_contains($date, 'updated')) {
+                        $this->setData($date, date('Y-m-d H:i:s'));
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

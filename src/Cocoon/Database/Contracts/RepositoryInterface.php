@@ -56,9 +56,9 @@ interface RepositoryInterface
      * Supprime un enregistrement
      *
      * @param int|string $id Identifiant de l'enregistrement
-     * @return bool
+     * @return void
      */
-    public function delete(int|string $id): bool;
+    public function delete(int|string $id): void;
 
     /**
      * Recherche un enregistrement par un champ spécifique

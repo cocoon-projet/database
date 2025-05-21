@@ -1,19 +1,31 @@
 {
   "name": "cocoon-projet/database",
-  "description": "gestion de base de donnee",
+  "description": "ORM PHP simplifié et léger",
+  "type": "library",
   "license": "MIT",
+  "authors": [
+    {
+      "name": "Pichot Franck",
+      "email": "contact@cocoon-projet.fr",
+      "role": "Developer"
+    }
+  ],
   "autoload": {
     "psr-4": {
       "Cocoon\\": "src/Cocoon/",
       "App\\": "app/"
     }
   },
+  "bin": [
+    "bin/cocoon"
+  ],
   "require": {
     "php": "^8.0",
     "cocoon-projet/utilities": "^0.0.1",
     "league/flysystem": "^3.29",
     "cocoon-projet/pagination": "^0.0.4",
-    "cocoon-projet/collection": "0.0.4"
+    "cocoon-projet/collection": "^0.0.4",
+    "symfony/console": "^6.0"
   },
   "autoload-dev": {
     "psr-4": {
@@ -27,7 +39,10 @@
     "tracy/tracy": "^2.10"
   },
   "scripts": {
-      "test": ["vendor/bin/phpcbf",
-              "vendor/bin/phpcs"]
+    "test": ["vendor/bin/phpcbf",
+            "vendor/bin/phpcs"]
+  },
+  "config": {
+    "bin-dir": "bin"
   }
 }

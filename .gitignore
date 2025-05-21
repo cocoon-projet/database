@@ -5,8 +5,10 @@
 /database
 /examples
 /prompts
+/cache
 /.idea
+/docs
 index.php
 composer.lock
 test.php
-paginbuilder.php
+fillable.php

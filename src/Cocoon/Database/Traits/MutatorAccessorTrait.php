@@ -69,8 +69,8 @@ trait MutatorAccessorTrait
             return $this->$accessor($this->data[$name]);
         }
 
-        if ($this->isDateTime($name)) {
-            return date('Y-m-d H:i:s', strtotime($this->data[$name]));
+        if ($this->isDateTime($name) && isset($this->data[$name])) {
+           return $this->data[$name];
         }
 
         if (isset($this->data[$name])) {
@@ -147,5 +147,14 @@ trait MutatorAccessorTrait
     public function getEntityData(): array
     {
         return $this->data;
+    }
+    /**
+     * Retourne toutes les données de l'entité.
+     *
+     * @return array<string, mixed> Données de l'entité
+     */
+    public function toArray(): array
+    {
+        return $this->getEntityData();
     }
 }

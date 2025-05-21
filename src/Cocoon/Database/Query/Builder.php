@@ -557,11 +557,11 @@ class Builder
     /**
      * Résolutions des paramètres (bind params)
      *
-     * @param $bindParams
+     * @param mixed $bindParams
      */
     protected function resolveBindParams($bindParams): void
     {
-        if ($bindParams != null) {
+        if ($bindParams !== null) {
             if (is_array($bindParams)) {
                 foreach ($bindParams as $param) {
                     $this->bindParamsWhere[] = $param;
@@ -1244,7 +1244,6 @@ class Builder
     {
         $stmt = $this->db->prepare($this->getSql());
         $bindParams = $this->getBindParams();
-        
         if (count($bindParams) > 0) {
             $stmt->execute($bindParams);
         } else {
