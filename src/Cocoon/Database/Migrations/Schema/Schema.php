@@ -1,19 +1,24 @@
 <?php
+declare(strict_types=1);
+
 namespace Cocoon\Database\Migrations\Schema;
 
 use Cocoon\Database\Orm;
 use Cocoon\Database\Exception\MigrationException;
 
-class Schema {
+class Schema
+{
     protected $pdo;
     protected $platform;
     
-    public function __construct($pdo) {
+    public function __construct($pdo)
+    {
         $this->pdo = $pdo;
         $this->platform = Orm::getConfig('db.driver');
     }
     
-    public function create($tableName, $callback) {
+    public function create($tableName, $callback)
+    {
         $blueprint = new Blueprint($tableName);
         $callback($blueprint);
         
@@ -23,7 +28,8 @@ class Schema {
         return $blueprint;
     }
     
-    public function table($tableName, $callback) {
+    public function table($tableName, $callback)
+    {
         $blueprint = new Blueprint($tableName, true);
         $callback($blueprint);
         
@@ -33,12 +39,14 @@ class Schema {
         return $blueprint;
     }
     
-    public function drop($tableName) {
+    public function drop($tableName)
+    {
         $sql = "DROP TABLE IF EXISTS `{$tableName}`";
         return $this->pdo->exec($sql);
     }
     
-    protected function executeCreateTable(Blueprint $blueprint) {
+    protected function executeCreateTable(Blueprint $blueprint)
+    {
         try {
             $sql = $blueprint->toSql($this->platform);
             return $this->pdo->exec($sql);
@@ -50,7 +58,8 @@ class Schema {
         }
     }
     
-    protected function executeAlterTable(Blueprint $blueprint) {
+    protected function executeAlterTable(Blueprint $blueprint)
+    {
         $queries = $blueprint->toAlterSql($this->platform);
         
         $this->pdo->beginTransaction();
@@ -79,7 +88,8 @@ class Schema {
         }
     }
     
-    protected function executeIndexes(Blueprint $blueprint) {
+    protected function executeIndexes(Blueprint $blueprint)
+    {
         $queries = $blueprint->getIndexSql($this->platform);
         
         if (empty($queries)) {

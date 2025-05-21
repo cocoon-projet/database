@@ -380,4 +380,4 @@ class {$className} extends Migration
 }
 PHP;
     }
-} 
+}

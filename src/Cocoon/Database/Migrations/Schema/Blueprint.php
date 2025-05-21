@@ -1,81 +1,99 @@
 <?php
+declare(strict_types=1);
+
 namespace Cocoon\Database\Migrations\Schema;
-class Blueprint {
+
+class Blueprint
+{
     protected $tableName;
     protected $columns = [];
     protected $commands = [];
-    protected $isAlter = false;                                    
+    protected $isAlter = false;
     protected $platform = '';
     
-    public function __construct($tableName, $isAlter = false) {
+    public function __construct($tableName, $isAlter = false)
+    {
         $this->tableName = $tableName;
         $this->isAlter = $isAlter;
     }
     
-    public function integer($name) {
+    public function integer($name)
+    {
         $column = Column::integer($name);
         $this->columns[] = $column;
         return $column;
     }
     
-    public function string($name, $length = 255) {
+    public function string($name, $length = 255)
+    {
         $column = Column::string($name, $length);
         $this->columns[] = $column;
         return $column;
     }
     
-    public function text($name) {
+    public function text($name)
+    {
         $column = Column::text($name);
         $this->columns[] = $column;
         return $column;
     }
     
-    public function boolean($name) {
+    public function boolean($name)
+    {
         $column = Column::boolean($name);
         $this->columns[] = $column;
         return $column;
     }
     
-    public function datetime($name) {
+    public function datetime($name)
+    {
         $column = Column::datetime($name);
         $this->columns[] = $column;
         return $column;
     }
     
-    public function date($name) {
+    public function date($name)
+    {
         $column = Column::date($name);
         $this->columns[] = $column;
         return $column;
     }
     
-    public function decimal($name, $precision = 8, $scale = 2) {
+    public function decimal($name, $precision = 8, $scale = 2)
+    {
         $column = Column::decimal($name, $precision, $scale);
         $this->columns[] = $column;
         return $column;
     }
     
-    public function timestamps() {
+    public function timestamps()
+    {
         $this->datetime('created_at')->nullable();
         $this->datetime('updated_at')->nullable();
     }
     
-    public function id() {
+    public function id()
+    {
         return $this->integer('id')->autoIncrement();
     }
     
-    public function addColumn($column) {
+    public function addColumn($column)
+    {
         $this->commands[] = ['add', $column];
     }
     
-    public function dropColumn($name) {
+    public function dropColumn($name)
+    {
         $this->commands[] = ['drop', $name];
     }
     
-    public function modifyColumn($column) {
+    public function modifyColumn($column)
+    {
         $this->commands[] = ['modify', $column];
     }
     
-    public function renameColumn($from, $to) {
+    public function renameColumn($from, $to)
+    {
         $this->commands[] = ['rename', $from, $to];
     }
     
@@ -91,7 +109,8 @@ class Blueprint {
         return $col;
     }
     
-    public function toSql($platform) {
+    public function toSql($platform)
+    {
         $columns = [];
         $this->platform = $platform;
         $foreignKeys = [];
@@ -126,14 +145,16 @@ class Blueprint {
         return $sql;
     }
     
-    public function toAlterSql($platform) {
+    public function toAlterSql($platform)
+    {
         $queries = [];
         $this->platform = $platform;
         foreach ($this->commands as $command) {
             switch ($command[0]) {
                 case 'add':
                     $column = $command[1];
-                    $queries[] = "ALTER TABLE `{$this->tableName}` ADD COLUMN " . $column->getDefinition($this->platform);
+                    $queries[] = "ALTER TABLE `{$this->tableName}` ADD COLUMN "
+                    . $column->getDefinition($this->platform);
                     break;
                     
                 case 'drop':
@@ -144,8 +165,9 @@ class Blueprint {
                 case 'modify':
                     $column = $command[1];
                     if ($this->platform == 'mysql') {
-                        $queries[] = "ALTER TABLE `{$this->tableName}` MODIFY COLUMN " . $column->getDefinition($this->platform);
-                    } else if ($this->platform == 'sqlite') {
+                        $queries[] = "ALTER TABLE `{$this->tableName}` MODIFY COLUMN "
+                        . $column->getDefinition($this->platform);
+                    } elseif ($this->platform == 'sqlite') {
                         // SQLite doesn't support direct column modification
                         // Would need to implement table recreation
                         throw new \Exception("SQLite does not support direct column modification");
@@ -157,7 +179,7 @@ class Blueprint {
                     $to = $command[2];
                     if ($this->platform == 'mysql') {
                         $queries[] = "ALTER TABLE `{$this->tableName}` RENAME COLUMN `{$from}` TO `{$to}`";
-                    } else if ($this->platform == 'sqlite') {
+                    } elseif ($this->platform == 'sqlite') {
                         $queries[] = "ALTER TABLE `{$this->tableName}` RENAME COLUMN `{$from}` TO `{$to}`";
                     }
                     break;
@@ -167,7 +189,8 @@ class Blueprint {
         return $queries;
     }
     
-    public function getIndexSql($platform) {
+    public function getIndexSql($platform)
+    {
         $queries = [];
         $this->platform = $platform;
         foreach ($this->columns as $column) {

@@ -111,4 +111,4 @@ abstract class Command extends SymfonyCommand
             }
         }
     }
-} 
+}

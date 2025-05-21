@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Cocoon\Database\Migrations;
 
 use PDO;
@@ -157,7 +159,7 @@ class Migrator
 
     /**
      * Annule toutes les migrations appliquées
-     * 
+     *
      * @return void
      * @throws MigrationException En cas d'erreur lors du rollback
      */
@@ -211,7 +213,7 @@ class Migrator
     
     /**
      * Supprime toutes les tables et réapplique toutes les migrations
-     * 
+     *
      * @return void
      * @throws MigrationException En cas d'erreur lors de l'opération
      */
@@ -235,7 +237,7 @@ class Migrator
     
     /**
      * Supprime toutes les tables de la base de données
-     * 
+     *
      * @return void
      * @throws Exception En cas d'erreur lors de la suppression
      */
@@ -247,7 +249,7 @@ class Migrator
         // Désactiver les contraintes de clés étrangères temporairement
         if ($driver === 'mysql') {
             $this->db->exec('SET FOREIGN_KEY_CHECKS = 0');
-        } else if ($driver === 'sqlite') {
+        } elseif ($driver === 'sqlite') {
             $this->db->exec('PRAGMA foreign_keys = OFF');
         }
         
@@ -264,7 +266,7 @@ class Migrator
             // Réactiver les contraintes de clés étrangères
             if ($driver === 'mysql') {
                 $this->db->exec('SET FOREIGN_KEY_CHECKS = 1');
-            } else if ($driver === 'sqlite') {
+            } elseif ($driver === 'sqlite') {
                 $this->db->exec('PRAGMA foreign_keys = ON');
             }
         }
@@ -272,7 +274,7 @@ class Migrator
     
     /**
      * Récupère la liste de toutes les tables de la base de données
-     * 
+     *
      * @return array Liste des noms de tables
      */
     protected function getAllTables(): array
@@ -297,7 +299,7 @@ class Migrator
     
     /**
      * Récupère tous les numéros de batch existants
-     * 
+     *
      * @return array Liste des numéros de batch
      */
     protected function getAllBatchNumbers(): array
@@ -359,7 +361,7 @@ class Migrator
 
     protected function getClassName($migration)
     {
-        // Extraire la partie du nom sans timestamp 
+        // Extraire la partie du nom sans timestamp
         $nameParts = explode('_', $migration);
         // On considère que les 4 premiers éléments constituent le timestamp (YYYY_MM_DD_HHMMSS)
         if (count($nameParts) > 4 && preg_match('/^\d{4}$/', $nameParts[0])) {
@@ -376,7 +378,10 @@ class Migrator
 
     protected function logMigration($migration, $status, $message = null)
     {
-        $stmt = $this->db->prepare("INSERT INTO migration_logs (migration, status, message, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)");
+        $stmt = $this->db->prepare(
+            "INSERT INTO migration_logs (migration, status, message, created_at) 
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP)"
+        );
         $stmt->execute([$migration, $status, $message]);
     }
 

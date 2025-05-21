@@ -70,7 +70,7 @@ trait MutatorAccessorTrait
         }
 
         if ($this->isDateTime($name) && isset($this->data[$name])) {
-           return $this->data[$name];
+            return $this->data[$name];
         }
 
         if (isset($this->data[$name])) {

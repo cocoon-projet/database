@@ -25,7 +25,11 @@ class MigrateCommand extends Command
         $this
             ->setName('migrate')
             ->setDescription('Exécute les migrations en attente')
-            ->setHelp('Cette commande exécute toutes les migrations qui n\'ont pas encore été appliquées à la base de données.')
+            ->setHelp(
+                'Cette commande exécute toutes les migrations qui n\'ont pas encore été appliquées.'
+                . PHP_EOL .
+                'Utilisez l\'option --path pour spécifier un chemin différent pour les migrations.'
+            )
             ->addOption(
                 'path',
                 'p',
@@ -34,7 +38,7 @@ class MigrateCommand extends Command
                 null
             );
     }
-    
+
     /**
      * Exécution de la commande
      *
@@ -47,37 +51,37 @@ class MigrateCommand extends Command
         try {
             // Obtenir le chemin des migrations
             $migrationsPath = $this->getMigrationsPath($input);
-            
+
             // Afficher le titre
             $this->io->title('Migration de la base de données');
             $this->io->text("Utilisation du chemin : <info>{$migrationsPath}</info>");
-            
+
             // Exécuter les migrations
             $migrator = new Migrator($migrationsPath);
-            
+
             // Afficher l'état des migrations avant l'exécution
             $statusBefore = $migrator->status();
-            $pendingCount = count(array_filter($statusBefore, function($info) {
+            $pendingCount = count(array_filter($statusBefore, function ($info) {
                 return !$info['applied'];
             }));
-            
+
             if ($pendingCount === 0) {
                 $this->io->success('Aucune migration en attente.');
                 return self::SUCCESS;
             }
-            
+
             $this->io->text("<fg=yellow>{$pendingCount} migration(s) en attente d'application.</>");
-            
+
             // Exécuter les migrations
             $this->io->newLine();
             $this->io->section('Exécution des migrations');
-            
+
             $migrator->run();
-            
+
             // Afficher un récapitulatif
             $this->io->newLine();
             $this->io->success("Migrations appliquées avec succès !");
-            
+
             return self::SUCCESS;
         } catch (MigrationException $e) {
             // Afficher une erreur formatée pour les exceptions de migration
@@ -85,7 +89,7 @@ class MigrateCommand extends Command
                 'Erreur de migration : ' . $e->getMessage(),
                 'Code : ' . $e->getCode()
             ]);
-            
+
             // Afficher le contexte s'il est disponible
             $context = $e->getContext();
             if (!empty($context)) {
@@ -94,7 +98,7 @@ class MigrateCommand extends Command
                     $this->io->text("<info>{$key}:</info> {$value}");
                 }
             }
-            
+
             return self::FAILURE;
         } catch (Exception $e) {
             // Afficher une erreur générique pour les autres types d'exceptions
@@ -102,16 +106,16 @@ class MigrateCommand extends Command
                 'Erreur lors de l\'exécution des migrations :',
                 $e->getMessage()
             ]);
-            
+
             if ($output->isVerbose()) {
                 $this->io->section('Trace de l\'erreur :');
                 $this->io->text($e->getTraceAsString());
             }
-            
+
             return self::FAILURE;
         }
     }
-    
+
     /**
      * Obtient le chemin des migrations
      *
@@ -125,9 +129,9 @@ class MigrateCommand extends Command
         if ($customPath !== null) {
             return $customPath;
         }
-        
+
         // Sinon, utiliser le chemin par défaut
         $basePath = Orm::getConfig('base.path') ?? getcwd();
         return $basePath . '/database/migrations';
     }
-} 
+}

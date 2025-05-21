@@ -26,7 +26,12 @@ class FreshCommand extends Command
         $this
             ->setName('migrate:fresh')
             ->setDescription('Supprime toutes les tables et réapplique les migrations')
-            ->setHelp('Cette commande supprime toutes les tables de la base de données et réapplique toutes les migrations.')
+            ->setHelp(
+                'Cette commande supprime toutes les tables de la base de données et réapplique toutes les migrations.'
+                . PHP_EOL .
+                'Utilisez l\'option --force pour forcer l\'opération sans demander de confirmation.' . PHP_EOL .
+                'Utilisez l\'option --path pour spécifier un chemin différent pour les migrations.'
+            )
             ->addOption(
                 'path',
                 'p',
@@ -64,7 +69,8 @@ class FreshCommand extends Command
             if (!$input->getOption('force')) {
                 $helper = $this->getHelper('question');
                 $question = new ConfirmationQuestion(
-                    '<fg=red>ATTENTION : Toutes les tables de la base de données seront supprimées et recréées. Cette opération est irréversible.</>'
+                    '<fg=red>ATTENTION : Toutes les tables de la base de données seront supprimées et recréées. 
+                    Cette opération est irréversible.</>'
                     . PHP_EOL
                     . 'Voulez-vous continuer ? (y/n) ',
                     false
@@ -141,4 +147,4 @@ class FreshCommand extends Command
         $basePath = Orm::getConfig('base.path') ?? getcwd();
         return $basePath . '/database/migrations';
     }
-} 
+}

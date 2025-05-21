@@ -34,7 +34,7 @@ class RollbackCommand extends Command
                 null
             )
             ->addOption(
-                'step', 
+                'step',
                 's',
                 InputOption::VALUE_OPTIONAL,
                 'Nombre de lots de migrations à annuler',
@@ -64,7 +64,7 @@ class RollbackCommand extends Command
             
             // Afficher l'état des migrations avant l'annulation
             $statusBefore = $migrator->status();
-            $appliedCount = count(array_filter($statusBefore, function($info) {
+            $appliedCount = count(array_filter($statusBefore, function ($info) {
                 return $info['applied'];
             }));
             
@@ -136,4 +136,4 @@ class RollbackCommand extends Command
         $basePath = Orm::getConfig('base.path') ?? getcwd();
         return $basePath . '/database/migrations';
     }
-} 
+}

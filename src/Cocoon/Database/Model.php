@@ -496,16 +496,16 @@ abstract class Model implements ArrayAccess
 
     public function hasDates()
     {
-        if(!empty($this->dates)) {
-            foreach($this->dates as $date) {
-                if($this->isNew) {
-                    if(str_contains($date, 'created')) {
+        if (!empty($this->dates)) {
+            foreach ($this->dates as $date) {
+                if ($this->isNew) {
+                    if (str_contains($date, 'created')) {
                         $this->setData($date, date('Y-m-d H:i:s'));
-                    } else if(str_contains($date, 'updated')) {
+                    } elseif (str_contains($date, 'updated')) {
                         $this->setData($date, date('Y-m-d H:i:s'));
                     }
                 } else {
-                    if(str_contains($date, 'updated')) {
+                    if (str_contains($date, 'updated')) {
                         $this->setData($date, date('Y-m-d H:i:s'));
                     }
                 }

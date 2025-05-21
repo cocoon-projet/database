@@ -66,8 +66,8 @@ class StatusCommand extends Command
             $pendingCount = 0;
             
             foreach ($status as $migration => $info) {
-                $statusText = $info['applied'] 
-                    ? '<fg=green>Appliquée</>' 
+                $statusText = $info['applied']
+                    ? '<fg=green>Appliquée</>'
                     : '<fg=yellow>En attente</>';
                 
                 $batch = $info['batch'] ?? '-';
@@ -133,4 +133,4 @@ class StatusCommand extends Command
         $basePath = Orm::getConfig('base.path') ?? getcwd();
         return $basePath . '/database/migrations';
     }
-} 
+}

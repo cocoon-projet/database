@@ -170,4 +170,4 @@ class MigrationException extends DatabaseException
             ['operation' => $operation, 'reason' => $reason]
         );
     }
-} 
+}

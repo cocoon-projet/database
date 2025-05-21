@@ -1,6 +1,10 @@
 <?php
+declare(strict_types=1);
+
 namespace Cocoon\Database\Migrations\Schema;
-class Column {
+
+class Column
+{
     protected $name;
     protected $type;
     protected $length;
@@ -19,81 +23,97 @@ class Column {
     protected $onDelete = null;
     protected $onUpdate = null;
 
-    public function __construct($name, $type) {
+    public function __construct($name, $type)
+    {
         $this->name = $name;
         $this->type = $type;
     }
 
-    public static function integer($name) {
+    public static function integer($name)
+    {
         return new self($name, 'INTEGER');
     }
 
-    public static function string($name, $length = 255) {
+    public static function string($name, $length = 255)
+    {
         $column = new self($name, 'VARCHAR');
         $column->length = $length;
         return $column;
     }
 
-    public static function text($name) {
+    public static function text($name)
+    {
         return new self($name, 'TEXT');
     }
 
-    public static function boolean($name) {
+    public static function boolean($name)
+    {
         return new self($name, 'BOOLEAN');
     }
 
-    public static function datetime($name) {
+    public static function datetime($name)
+    {
         return new self($name, 'DATETIME');
     }
 
-    public static function date($name) {
+    public static function date($name)
+    {
         return new self($name, 'DATE');
     }
 
-    public static function decimal($name, $precision = 8, $scale = 2) {
+    public static function decimal($name, $precision = 8, $scale = 2)
+    {
         $column = new self($name, 'DECIMAL');
         $column->length = $precision . ',' . $scale;
         return $column;
     }
 
-    public function primary() {
+    public function primary()
+    {
         $this->primary = true;
         $this->nullable = false;
         return $this;
     }
 
-    public function autoIncrement() {
+    public function autoIncrement()
+    {
         $this->autoIncrement = true;
         $this->primary();
         return $this;
     }
 
-    public function nullable() {
+    public function nullable()
+    {
         $this->nullable = true;
         return $this;
     }
 
-    public function default($value) {
+    public function default($value)
+    {
         $this->default = $value;
         return $this;
     }
 
-    public function unique() {
+    public function unique()
+    {
         $this->unique = true;
         return $this;
     }
 
-    public function unsigned() {
+    public function unsigned()
+    {
         $this->unsigned = true;
         return $this;
     }
 
-    public function index() {
+    public function index()
+    {
         $this->index = true;
         return $this;
     }
 
-    public function getDefinition($platform) {
+    public function getDefinition($platform)
+    {
         $definition = $this->name . ' ' . $this->type;
         if ($this->length) {
             $definition .= '(' . $this->length . ')';
@@ -106,7 +126,7 @@ class Column {
         if ($this->autoIncrement) {
             if ($platform == 'mysql') {
                 $definition .= ' AUTO_INCREMENT';
-            } else if ($platform == 'sqlite') {
+            } elseif ($platform == 'sqlite') {
                 $definition .= ' AUTOINCREMENT';
             }
         }
@@ -136,19 +156,23 @@ class Column {
         return $definition;
     }
 
-    public function getName() {
+    public function getName()
+    {
         return $this->name;
     }
 
-    public function isIndex() {
+    public function isIndex()
+    {
         return $this->index;
     }
 
-    public function isPrimary() {
+    public function isPrimary()
+    {
         return $this->primary;
     }
 
-    public function isUnique() {
+    public function isUnique()
+    {
         return $this->unique;
     }
 
@@ -189,7 +213,7 @@ class Column {
     }
 
     /**
-     * Spécifie l'action à effectuer lors de la suppression 
+     * Spécifie l'action à effectuer lors de la suppression
      * de la ligne référencée
      *
      * @param string $action Action (CASCADE, SET NULL, RESTRICT, NO ACTION)
@@ -202,7 +226,7 @@ class Column {
     }
 
     /**
-     * Spécifie l'action à effectuer lors de la mise à jour 
+     * Spécifie l'action à effectuer lors de la mise à jour
      * de la ligne référencée
      *
      * @param string $action Action (CASCADE, SET NULL, RESTRICT, NO ACTION)

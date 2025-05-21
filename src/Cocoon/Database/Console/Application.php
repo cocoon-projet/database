@@ -49,4 +49,4 @@ class Application extends SymfonyApplication
         $this->add(new MakeModelCommand());
         $this->add(new MakeRepositoryCommand());
     }
-} 
+}

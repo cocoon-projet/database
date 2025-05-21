@@ -64,7 +64,8 @@ class ResetCommand extends Command
             if (!$input->getOption('force')) {
                 $helper = $this->getHelper('question');
                 $question = new ConfirmationQuestion(
-                    '<fg=red>ATTENTION : Toutes les tables de la base de données seront réinitialisées. Cette opération est irréversible.</>'
+                    '<fg=red>ATTENTION : Toutes les tables de la base de données seront réinitialisées. 
+                    Cette opération est irréversible.</>'
                     . PHP_EOL
                     . 'Voulez-vous continuer ? (y/n) ',
                     false
@@ -81,7 +82,7 @@ class ResetCommand extends Command
             
             // Afficher l'état des migrations avant l'exécution
             $statusBefore = $migrator->status();
-            $appliedCount = count(array_filter($statusBefore, function($info) {
+            $appliedCount = count(array_filter($statusBefore, function ($info) {
                 return $info['applied'];
             }));
             
@@ -154,4 +155,4 @@ class ResetCommand extends Command
         $basePath = Orm::getConfig('base.path') ?? getcwd();
         return $basePath . '/database/migrations';
     }
-} 
+}

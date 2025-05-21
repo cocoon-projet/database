@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Cocoon\Database\Migrations;
 
 use Cocoon\Dependency\DI;
